@@ -8,8 +8,8 @@
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
-	<classpathentry kind="lib" path="C:/John/EclipseEE/SiteTreeUI/libs/el-api.jar"/>
-	<classpathentry kind="lib" path="C:/John/EclipseEE/SiteTreeUI/libs/jsp-api.jar"/>
-	<classpathentry kind="lib" path="C:/John/EclipseEE/SiteTreeUI/libs/servlet-api.jar"/>
+	<classpathentry kind="lib" path="libs/el-api.jar"/>
+	<classpathentry kind="lib" path="libs/jsp-api.jar"/>
+	<classpathentry kind="lib" path="libs/servlet-api.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
