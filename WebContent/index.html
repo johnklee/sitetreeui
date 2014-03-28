@@ -7,6 +7,8 @@
 	.hello {
      	background-image:url(images/hello.png) !important;
      }
+     .demo{background-image:url(images/test.png) !important;}
+     .cmbo{background-image:url(images/combobox.png) !important;}
 </style>
 <script type="text/javascript" src="js/ext-3.4.0/adapter/ext/ext-base.js"></script>
 <script type="text/javascript" src="js/ext-3.4.0/ext-all.js"></script>
@@ -16,13 +18,35 @@ Ext.onReady(function(){
 	{
 		Ext.Msg.alert("Info", "Hello World!");	
 	}
+	function onMenuItem(item)    
+    {    
+        Ext.Msg.alert('Info',item.text);    
+    } 
 	
 	Ext.Msg.alert("Info", "Welcome to SiteTreeUI!");
 	// http://docs-origin.sencha.com/extjs/3.4.0/#!/api/Ext.Toolbar
 	var toolbar = new Ext.Toolbar({    
         renderTo: 'toolbar'       
     });
-	toolbar.addButton([{text: 'Hello World', handler:helloWorld, icon: 'images/hello.png'}]);  
+	toolbar.addButton([{text: 'Hello World', handler:helloWorld, icon: 'images/hello.png'}]);
+	var infoMenu = new Ext.menu.Menu({    
+        items: [    
+                {text: 'ComboBox', 
+                 handler: onMenuItem, 
+                 icon: 'images/combobox.png',
+                 menu:new Ext.menu.Menu({items:[
+                                		         {text: '遠程數據源的組合框', 
+                                		          handler: function(){
+                                		                            window.location = 'extjsDemo/e3-9.html';
+                                		         }}
+                                	           ]
+                                        })
+                }    
+                ]    
+    });
+	toolbar.add(    
+            {text: 'ExtJS Demo', menu: infoMenu, iconCls: 'demo'}    
+            );   
 	toolbar.doLayout();  
 });
 </script>
