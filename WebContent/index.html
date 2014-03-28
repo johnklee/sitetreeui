@@ -1,0 +1,36 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" type="text/css" href="js/ext-3.4.0/resources/css/ext-all.css" />
+<style type="text/css">
+	.hello {
+     	background-image:url(images/hello.png) !important;
+     }
+</style>
+<script type="text/javascript" src="js/ext-3.4.0/adapter/ext/ext-base.js"></script>
+<script type="text/javascript" src="js/ext-3.4.0/ext-all.js"></script>
+<script type="text/javascript">
+Ext.onReady(function(){ 
+	function helloWorld()
+	{
+		Ext.Msg.alert("Info", "Hello World!");	
+	}
+	
+	Ext.Msg.alert("Info", "Welcome to SiteTreeUI!");
+	// http://docs-origin.sencha.com/extjs/3.4.0/#!/api/Ext.Toolbar
+	var toolbar = new Ext.Toolbar({    
+        renderTo: 'toolbar'       
+    });
+	toolbar.addButton([{text: 'Hello World', handler:helloWorld, icon: 'images/hello.png'}]);  
+	toolbar.doLayout();  
+});
+</script>
+<title>Hello World</title>
+</head>
+<body>
+<div id='toolbar'></div>
+This page is a welcome page!<br/>
+ 
+</body>
+</html>
