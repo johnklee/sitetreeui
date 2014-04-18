@@ -41,11 +41,25 @@ Ext.onReady(function(){
                                 		         }}
                                 	           ]
                                         })
-                }    
+                },
+                {text: 'D3', 
+                    handler: onMenuItem, 
+                    icon: 'images/examples.png',
+                    menu:new Ext.menu.Menu({items:[
+                                   		         {text: 'Force-Directed Graph', 
+                                   		          handler: function(){
+                                   		                            window.location = 'd3/FDGraph.jsp';
+                                   		         }}
+                                   	           ]
+                                           })
+                }
                 ]    
     });
+	
+	
+	
 	toolbar.add(    
-            {text: 'ExtJS Demo', menu: infoMenu, iconCls: 'demo'}    
+            {text: 'Demo Pages', menu: infoMenu, iconCls: 'demo'}    
             );   
 	toolbar.doLayout();  
 });
