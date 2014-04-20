@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" type="text/css"
+	href="../js/ext-3.4.0/resources/css/ext-all.css" />
+<style type="text/css">
+.hello {
+	background-image: url(images/hello.png) !important;
+}
+
+.demo {
+	background-image: url(images/test.png) !important;
+}
+
+.cmbo {
+	background-image: url(images/combobox.png) !important;
+}
+
+.node {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+.link {
+  stroke: #999;
+  stroke-opacity: .6;
+}
+</style>
+<script type="text/javascript"
+	src="../js/ext-3.4.0/adapter/ext/ext-base.js"></script>
+<script type="text/javascript" src="../js/ext-3.4.0/ext-all.js"></script>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script type="text/javascript">
+	Ext.onReady(function() {
+		function helloWorld() {
+			Ext.Msg.alert("Info", "Another Hello World!");
+		}
+		function onMenuItem(item) {
+			Ext.Msg.alert('Info', item.text);
+		}
+
+		// Ext.Msg.alert("Info", "Welcome to SiteTreeUI!");
+		// http://docs-origin.sencha.com/extjs/3.4.0/#!/api/Ext.Toolbar
+
+		/* TOOLBAR */
+		var toolbar = new Ext.Toolbar();
+		toolbar.addButton([ {
+			text : 'Another Hello World',
+			handler : helloWorld
+		} ]);
+		/*
+		 var infoMenu = new Ext.menu.Menu({
+		 items : [ {
+		 text : 'ComboBox',
+		 handler : onMenuItem,
+		 icon : 'images/combobox.png',
+		 menu : new Ext.menu.Menu({
+		 items : [ {
+		 text : '遠程數據源的組合框',
+		 handler : function() {
+		 window.location = 'extjsDemo/e3-9.html';
+		 }
+		 } ]
+		 })
+		 } ]
+		 });
+		 toolbar.add({
+		 text : 'ExtJS Demo',
+		 menu : infoMenu,
+		 iconCls : 'demo'
+		 });
+		 */
+		/* PANEL 1: d3.js example */
+		Myd3panel = Ext.extend(Ext.Panel, {
+
+			contructor : function(config) {
+				Myd3panel.superclass.constructor.call(this, config);
+			},
+
+			initComponent : function() {
+				/*
+				Ext.apply(this, {
+					layout : 'fit',
+					title : 'single view',
+				});
+				 */
+				Myd3panel.superclass.initComponent.apply(this, arguments);
+				Ext.apply(this,{
+					html: '<div class="customd3" style="width:100%; height:100%"></div>'
+				});
+			},
+			
+			listeners : {
+				afterrender : function(){
+					this.drawMap();
+				}	
+			},
+
+			onRender : function() {
+				Myd3panel.superclass.onRender.apply(this, arguments);
+				//this.drawMap();
+			},
+
+			loadConfig : function() {
+				//raise event
+			},
+
+			drawMap : function() {
+				var width = 960, height = 500;
+				var color = d3.scale.category20();
+				var force = d3.layout.force().charge(-120).linkDistance(30)
+						.size([ width, height ]);
+
+				var target = d3.select(".customd3");
+				var svg = target.append("svg").attr("width", width).attr("height",height);
+		        //var svg = d3.select("body").append("svg").attr("width", width).attr("height", height);
+				//var svg = d3.select('#' + this.id + '-innerCt').append("svg").attr("width", width).attr("height", height);
+				
+				d3.json("miserables.json", function(error, graph) {
+					force.nodes(graph.nodes).links(graph.links).start();
+
+					var link = svg.selectAll(".link").data(graph.links).enter()
+							.append("line").attr("class", "link").style(
+									"stroke-width", function(d) {
+										return Math.sqrt(d.value);
+									});
+
+					var node = svg.selectAll(".node").data(graph.nodes).enter()
+							.append("circle").attr("class", "node")
+							.attr("r", 5).style("fill", function(d) {
+								return color(d.group);
+							}).call(force.drag);
+
+					node.append("title").text(function(d) {
+						return d.name;
+					});
+
+					force.on("tick", function() {
+						link.attr("x1", function(d) {
+							return d.source.x;
+						}).attr("y1", function(d) {
+							return d.source.y;
+						}).attr("x2", function(d) {
+							return d.target.x;
+						}).attr("y2", function(d) {
+							return d.target.y;
+						});
+
+						node.attr("cx", function(d) {
+							return d.x;
+						}).attr("cy", function(d) {
+							return d.y;
+						});
+					});
+				});
+			} // close drawMap
+		}); // close My.D3panel
+
+		var d3ex = new Myd3panel({
+			title : "in-page d3 demo"
+		});
+
+		/* VIEWPORT */
+		var viewport = new Ext.Viewport({
+			layout : 'Auto',
+			autoshow : true,
+			items : [ toolbar, d3ex ]
+		});
+		viewport.doLayout();
+	});
+</script>
+<title>Hello World</title>
+</head>
+<body>
+	<div id='toolbar'></div>
+	Above is rendered by ExtJS.
+	<br />
+</body>
+</html>
