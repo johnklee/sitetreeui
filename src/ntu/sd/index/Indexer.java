@@ -32,7 +32,7 @@ public class Indexer implements Observer{
 	private String indexDirectoryPath;	
 	private IndexWriter indexWriter;
 	
-	public Indexer(String uid, String rootUrl) throws IOException {
+	public Indexer(String rootPath,String uid, String rootUrl) throws IOException {
 		indexDirectoryPath = uid + "_" + rootUrl.replaceAll("\\:|\\.|\\?|\\/|\\&", "");
 		Directory indexDirectory = new SimpleFSDirectory(new File(indexDirectoryPath), new SimpleFSLockFactory());
 		

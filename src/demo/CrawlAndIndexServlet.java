@@ -50,7 +50,7 @@ public class CrawlAndIndexServlet extends HttpServlet {
         
         
         config.setMaxPagesToFetch(100);
-        config.setMaxDownloadSize(1*CrawlConfig.MB);
+        config.setMaxDownloadSize(100*CrawlConfig.MB);
         
         
         
@@ -65,14 +65,16 @@ public class CrawlAndIndexServlet extends HttpServlet {
 			CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
 			controller.getConfig().setMaxDownloadSize(100*CrawlConfig.MB);
 			controller.addSeed(rootUrl);
-			Indexer indexer = new Indexer(request.getSession().getId(),rootUrl);
+			Indexer indexer = new Indexer(getServletContext().getRealPath("/"),request.getSession().getId(),rootUrl);
 			controller.addObserver(indexer);
 			controller.startNonBlocking(TestCrawler.class, 5);
 			while(!controller.isFinished())
 			{
-				System.out.println("wakeup");
+				System.out.println(indexer.getIndexDirectoryPath());
 				try{Thread.sleep(1000);} catch(Exception e){e.printStackTrace();}
 			}
+			controller.shutdown();
+    		controller.deleteObservers();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
