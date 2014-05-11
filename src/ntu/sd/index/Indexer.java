@@ -18,6 +18,9 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.store.SimpleFSLockFactory;
 import org.apache.lucene.util.Version;
+import org.jsoup.Jsoup;
+
+//import android.text.Html;
 
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.parser.HtmlParseData;
@@ -33,7 +36,7 @@ public class Indexer implements Observer{
 	private IndexWriter indexWriter;
 	
 	public Indexer(String rootPath,String uid, String rootUrl) throws IOException {
-		indexDirectoryPath = uid + "_" + rootUrl.replaceAll("\\:|\\.|\\?|\\/|\\&", "");
+		indexDirectoryPath = rootPath + uid + "_" + rootUrl.replaceAll("\\:|\\.|\\?|\\/|\\&", "");
 		Directory indexDirectory = new SimpleFSDirectory(new File(indexDirectoryPath), new SimpleFSLockFactory());
 		
 		Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_47);
@@ -53,20 +56,19 @@ public class Indexer implements Observer{
 	@Override
 	public void update(Observable o, Object obj) {
 		// needs to know whether it is the last page of the user-requested website
-		
 		Tuple rt = (Tuple)obj;	
 		if(rt.getBoolean(0))
 		{
 			/*Page Done*/	
 			Page page = (Page)rt.get(1);
 			WebURL url = page.getWebURL();
+
 			
-			
-			if (page.getParseData() instanceof HtmlParseData) {
-				
+			if (page.getContentType().equals("text/html")) {
+				String html = Jsoup.parse(page.getParseData().toString()).text();
 				Document document = new Document();
 				document.add(new StringField(FIELD_URL, url.getURL(), Field.Store.YES));
-				document.add(new TextField(FIELD_BODY, page.getContentData().toString(), Field.Store.YES));
+				document.add(new TextField(FIELD_BODY, html, Field.Store.YES));
 				document.add(new StringField(FIELD_ID, String.valueOf(url.getDocid()), Field.Store.YES));
 				try {
 					indexWriter.addDocument(document);
