@@ -41,7 +41,7 @@ public class CrawlAndIndexTest {
         
         RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
         RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
-        String rootUrl = "http://liyuanhung.heroku.com/";
+        String rootUrl = "http://homepage.ntu.edu.tw/~b99609035/";
         try {
 			CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
 			controller.getConfig().setMaxDownloadSize(1000*CrawlConfig.MB);
@@ -70,7 +70,7 @@ public class CrawlAndIndexTest {
     		
     		String indexDirectoryPath = indexer.getIndexDirectoryPath();
     		List <SearchResult> searchResultList = null;
-    		String keyword = "http://homepage.ntu.edu.tw/~b99609035/";
+    		String keyword = "providing";
     		searchResultList = Searcher.search(indexDirectoryPath, Indexer.FIELD_BODY, keyword);
     		
     		if (searchResultList != null) {

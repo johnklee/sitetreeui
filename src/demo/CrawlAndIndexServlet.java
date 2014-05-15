@@ -78,7 +78,7 @@ public class CrawlAndIndexServlet extends HttpServlet {
 			controller.addSeed(rootUrl);
 			Indexer indexer = new Indexer(storageFolder,request.getSession().getId(),rootUrl);
 			SiTree siTree = new SiTree();
-			//controller.addObserver(indexer);
+			controller.addObserver(indexer);
 			controller.addObserver(siTree);
 			controller.startNonBlocking(TestCrawler.class, 5);
 			long before = System.currentTimeMillis();
