@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.lucene.queryparser.classic.ParseException;
 
 import ntu.sd.index.Indexer;
-import ntu.sd.search.SearchResult;
+import ntu.sd.search.RelevantPage;
 import ntu.sd.search.Searcher;
 import ntu.sd.utils.SiTree;
 
@@ -112,15 +112,15 @@ public class CrawlAndIndexServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String keyword = request.getParameter("keyword");
 		String indexDirectoryPath = (String)request.getSession().getAttribute(SESSION_INDEX_DIRECTORY);
-		List <SearchResult> searchResultList = null;
+		List <RelevantPage> searchResultList = null;
 		try {
-			searchResultList = Searcher.search(indexDirectoryPath, Indexer.FIELD_BODY, keyword);
+			searchResultList = (new Searcher()).search(indexDirectoryPath, Indexer.FIELD_BODY, keyword);
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		if (searchResultList != null) {
-			for (SearchResult searchResult : searchResultList) {
+			for (RelevantPage searchResult : searchResultList) {
 				response.getWriter().write("<div >"+searchResult.getScore() + searchResult.getUrl() +"</div>");
 			}
 			

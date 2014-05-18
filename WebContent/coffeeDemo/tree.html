@@ -1,0 +1,91 @@
+<html>
+<head>
+	<script src="http://projects.flowingdata.com/tut/interactive_network_demo/js/libs/d3.v2.js"></script>
+	<script src="http://projects.flowingdata.com/tut/interactive_network_demo/js/libs/jquery-1.7.2.min.js"></script>
+	<script>
+		
+		function level2radius(level){
+			return level*60 + (1+level)*level;
+		}
+		$(document).ready(function(){
+			d3.json("./data/sitehierarchy.json", function(data){
+				console.log(data);
+				var width = 800;
+				var height = 600;
+				vis = d3.select("#vis").append("svg")
+			      .attr("width", width)
+			      .attr("height", height);
+			    linksG = vis.append("g").attr("id", "links");
+			    nodesG = vis.append("g").attr("id", "nodes");
+			    
+			    center = {"x":width/2, "y":height/2};
+			    
+			    level2numberOfNodesMap = [];
+			    data.nodes.forEach(function(n){
+			    	if (typeof level2numberOfNodesMap[n.lvl] !== "undefined" ) {
+			    		level2numberOfNodesMap[n.lvl] += 1;
+			    	} else {
+			    		level2numberOfNodesMap[n.lvl] = 1;
+			    	}
+			    	
+			    });
+			    
+			    level2angleMap = [];
+			    for (var i = 0;i < level2numberOfNodesMap.length;i++ ) {
+			    	level2angleMap[i] = -120;
+			    }
+			    // set up data
+			    data.nodes.forEach(function(n){
+			    	n.x = (center.x + level2radius(n.lvl) * Math.cos(level2angleMap[n.lvl] * Math.PI / 180));
+			        n.y = (center.y + level2radius(n.lvl) * Math.sin(level2angleMap[n.lvl] * Math.PI / 180));
+			        n.radius = 3;
+			        
+			        nodesG.append("circle")
+			        .attr("id", "node-"+n.id)
+			        .attr("class", "node")
+				    .attr("cx", n.x)
+				    .attr("cy", n.y)
+				    .attr("r", n.radius)
+				    .style("stroke-width", 1.0);
+			        
+				      
+			        
+			        level2angleMap[n.lvl] += 360/level2numberOfNodesMap[n.lvl];
+			    });
+			    
+			    data.links.forEach(function(l){
+			    	console.log("y");
+			    	nodesG.append("line")
+				      .attr("class", "link")
+				      .attr("stroke", "#ddd")
+				      .attr("stroke-opacity", 0.8)
+				      .attr("x1", $("#node-"+l.source).attr("cx"))
+				      .attr("y1", $("#node-"+l.source).attr("cy"))
+				      .attr("x2", $("#node-"+l.target).attr("cx"))
+				      .attr("y2", $("#node-"+l.target).attr("cy"));
+			    	
+			    });
+			    
+			    
+      			
+      			
+      			// 
+      			
+			    
+
+			    			    			    
+
+			});
+
+		});
+	</script>
+
+</head>
+<body>
+	<div id="vis">
+
+	</div>
+
+</body>
+
+</html>

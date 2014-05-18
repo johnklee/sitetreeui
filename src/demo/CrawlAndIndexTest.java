@@ -6,7 +6,7 @@ import java.util.List;
 import org.apache.lucene.queryparser.classic.ParseException;
 
 import ntu.sd.index.Indexer;
-import ntu.sd.search.SearchResult;
+import ntu.sd.search.RelevantPage;
 import ntu.sd.search.Searcher;
 import ntu.sd.utils.SiTree;
 import unitest.TestCrawler;
@@ -69,12 +69,12 @@ public class CrawlAndIndexTest {
     		indexer.close();
     		
     		String indexDirectoryPath = indexer.getIndexDirectoryPath();
-    		List <SearchResult> searchResultList = null;
+    		List <RelevantPage> searchResultList = null;
     		String keyword = "providing";
-    		searchResultList = Searcher.search(indexDirectoryPath, Indexer.FIELD_BODY, keyword);
+    		searchResultList = (new Searcher()).search(indexDirectoryPath, Indexer.FIELD_BODY, keyword);
     		
     		if (searchResultList != null) {
-    			for (SearchResult searchResult : searchResultList) {
+    			for (RelevantPage searchResult : searchResultList) {
     				System.out.println("<div >"+searchResult.getScore() + searchResult.getUrl() +"</div>");
     			}
     			

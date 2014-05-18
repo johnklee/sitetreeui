@@ -22,7 +22,7 @@ import org.apache.lucene.util.Version;
 
 public class Searcher {
 	private static final int NUMBER_OF_RETRIEVED_DOCUMENT = 5;
-	public static List <SearchResult> search( String indexDirectoryPath, String field, String keyword) throws IOException, ParseException{
+	public List <RelevantPage> search( String indexDirectoryPath, String field, String keyword) throws IOException, ParseException{
 		IndexReader reader = DirectoryReader.open(FSDirectory.open(new File(indexDirectoryPath)));
 		IndexSearcher searcher = new IndexSearcher(reader);
 		TopScoreDocCollector collector = TopScoreDocCollector.create(NUMBER_OF_RETRIEVED_DOCUMENT, true);
@@ -32,7 +32,7 @@ public class Searcher {
         searcher.search(query, collector);
         ScoreDoc[] hits = collector.topDocs().scoreDocs;
         
-        List <SearchResult> searchResultList = new ArrayList <SearchResult>();
+        List <RelevantPage> searchResultList = new ArrayList <RelevantPage>();
         // organize SearchResult
         for(int i=0;i<hits.length;++i) {
           int docId = hits[i].doc;
@@ -41,7 +41,7 @@ public class Searcher {
           
           
           List <IndexableField> fieldList = document.getFields();
-          searchResultList.add(new SearchResult(hits[i].score, fieldList));
+          searchResultList.add(new RelevantPage(hits[i].score, fieldList));
           
         }
         reader.close();

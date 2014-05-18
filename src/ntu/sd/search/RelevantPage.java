@@ -6,11 +6,11 @@ import ntu.sd.index.Indexer;
 
 import org.apache.lucene.index.IndexableField;
 
-public class SearchResult {
+public class RelevantPage {
 	private String url;
 	private String id;
 	private String score;
-	public SearchResult(float score,List <IndexableField> documentFieldList){
+	public RelevantPage(float score,List <IndexableField> documentFieldList){
 		this.score = String.valueOf(score);
 		for (IndexableField field : documentFieldList){
 			if (field.name().equals(Indexer.FIELD_URL)){
