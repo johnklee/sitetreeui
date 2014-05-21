@@ -68,10 +68,36 @@ RadialPlacement = () ->
 
     secondCircleKeys.forEach (k) -> place(k)
 
+  setKeysEx = (nodedata) ->
+    for d in [1..getMaxDepth(nodedata)]
+      circleKeys = getKeysAtDepth(nodedata,d)
+      increment = 360 / circleKeys.length
+      radius = radius + (d-1)*radius/1.8
+      circleKeys.forEach (k) -> place(k)
+
+  getMaxDepth = (nodedata) ->
+    max_depth = 1
+    for n in nodedata
+      if nodedata.lvl > max_depth
+        max_depth = nodedata.lvl
+    max_depth
+  
+  getKeysAtDepth = (nodedata, depth) ->
+    # nodesAtSameDepth is an array
+    nodesAtSameDepth = (node for node in nodedata when node.lvl is "#{depth}")
+    nodesAtSameDepth = (node.id for node in nodesAtSameDepth)
+    nodesAtSameDepth
+  
   placement.keys = (_) ->
     if !arguments.length
       return d3.keys(values)
     setKeys(_)
+    placement
+
+  placement.data = (_) ->
+    if !arguments.length
+      return d3.keys(values)
+    setKeysEx(_)
     placement
 
   placement.center = (_) ->
@@ -119,9 +145,9 @@ Network = () ->
   # of the nodes and links
   node = null
   link = null
-  # variables to refect the current settings
+  # variables to reflect the current settings
   # of the visualization
-  layout = "force"
+  layout = "radial"
   filter = "all"
   sort = "songs"
   # groupCenters will store our radial layout for
@@ -154,8 +180,9 @@ Network = () ->
     # setup the size of the force environment
     force.size([width, height])
 
-    setLayout("force")
-    setFilter("all")
+    # setLayout("force")
+    force.on("tick", radialTick).charge(charge)
+    # setFilter("all")
 
     # perform rendering and start force layout
     update()
@@ -168,14 +195,22 @@ Network = () ->
   # and the network needs to be reset.
   update = () ->
     # filter data to show based on current filter settings.
-    curNodesData = filterNodes(allData.nodes)
-    curLinksData = filterLinks(allData.links, curNodesData)
+    #curNodesData = filterNodes(allData.nodes)
+    curNodesData = allData.nodes
+    #curLinksData = filterLinks(allData.links, curNodesData)
+    curLinksData = allData.links
 
     # sort nodes based on current sort and update centers for
     # radial layout
+    ###
     if layout == "radial"
       artists = sortedArtists(curNodesData, curLinksData)
       updateCenters(artists)
+    ###
+    #originally expect an array
+    #currently just passing all in, maybe truncate?
+    groupCenters = RadialPlacement().center({"x":width/2, "y":height / 2 - 100})
+        .radius(300).increment(18).data(curNodesData)
 
     # reset nodes in force layout
     force.nodes(curNodesData)
@@ -201,25 +236,32 @@ Network = () ->
     force.start()
 
   # Public function to switch between layouts
+  ###
   network.toggleLayout = (newLayout) ->
     force.stop()
     setLayout(newLayout)
     update()
-
+  ###
+  
   # Public function to switch between filter options
+  ###
   network.toggleFilter = (newFilter) ->
     force.stop()
     setFilter(newFilter)
     update()
-
+  ###
+  
   # Public function to switch between sort options
+  ###
   network.toggleSort = (newSort) ->
     force.stop()
     setSort(newSort)
     update()
-
+  ###
+  
   # Public function to update highlighted nodes
   # from search
+  ###
   network.updateSearch = (searchTerm) ->
     searchRegEx = new RegExp(searchTerm.toLowerCase())
     node.each (d) ->
@@ -234,7 +276,8 @@ Network = () ->
         d.searched = false
         element.style("fill", (d) -> nodeColors(d.artist))
           .style("stroke-width", 1.0)
-
+  ###
+  
   network.updateData = (newData) ->
     allData = setupData(newData)
     link.remove()
@@ -246,7 +289,7 @@ Network = () ->
   # Returns modified data
   setupData = (data) ->
     # initialize circle radius scale
-    countExtent = d3.extent(data.nodes, (d) -> d.playcount)
+    countExtent = d3.extent(data.nodes, (d) -> d.lvl)
     circleRadius = d3.scale.sqrt().range([3, 12]).domain(countExtent)
 
     data.nodes.forEach (n) ->
@@ -255,7 +298,7 @@ Network = () ->
       n.x = randomnumber=Math.floor(Math.random()*width)
       n.y = randomnumber=Math.floor(Math.random()*height)
       # add radius to the node so we can use it later
-      n.radius = circleRadius(n.playcount)
+      n.radius = circleRadius(n.lvl)
 
     # id's -> node objects
     nodesMap  = mapNodes(data.nodes)
@@ -298,6 +341,7 @@ Network = () ->
   # Removes nodes from input array
   # based on current filter setting.
   # Returns array of nodes
+  ###
   filterNodes = (allNodes) ->
     filteredNodes = allNodes
     if filter == "popular" or filter == "obscure"
@@ -310,9 +354,11 @@ Network = () ->
           n.playcount <= cutoff
 
     filteredNodes
-
+  ###
+    
   # Returns array of artists sorted based on
   # current sorting method.
+  ###
   sortedArtists = (nodes,links) ->
     artists = []
     if sort == "links"
@@ -339,20 +385,25 @@ Network = () ->
       artists = artists.map (v) -> v.key
 
     artists
-
+  ###
+  
+  ###
   updateCenters = (artists) ->
     if layout == "radial"
       groupCenters = RadialPlacement().center({"x":width/2, "y":height / 2 - 100})
         .radius(300).increment(18).keys(artists)
-
+  ###
+  
   # Removes links from allLinks whose
   # source or target is not present in curNodes
   # Returns array of links
+  ###
   filterLinks = (allLinks, curNodes) ->
     curNodes = mapNodes(curNodes)
     allLinks.filter (l) ->
       curNodes.get(l.source.id) and curNodes.get(l.target.id)
-
+  ###
+  
   # enter/exit display for nodes
   updateNodes = () ->
     node = nodesG.selectAll("circle.node")
@@ -363,7 +414,7 @@ Network = () ->
       .attr("cx", (d) -> d.x)
       .attr("cy", (d) -> d.y)
       .attr("r", (d) -> d.radius)
-      .style("fill", (d) -> nodeColors(d.artist))
+      .style("fill", (d) -> nodeColors(d.id))
       .style("stroke", (d) -> strokeFor(d))
       .style("stroke-width", 1.0)
 
@@ -388,6 +439,7 @@ Network = () ->
     link.exit().remove()
 
   # switches force to new layout parameters
+  ###
   setLayout = (newLayout) ->
     layout = newLayout
     if layout == "force"
@@ -397,16 +449,22 @@ Network = () ->
     else if layout == "radial"
       force.on("tick", radialTick)
         .charge(charge)
-
+  ###
+  
   # switches filter option to new filter
+  ###
   setFilter = (newFilter) ->
     filter = newFilter
-
+  ###
+  
   # switches sort option to new sort
+  ###
   setSort = (newSort) ->
     sort = newSort
-
+  ###
+  
   # tick function for force directed layout
+  ###
   forceTick = (e) ->
     node
       .attr("cx", (d) -> d.x)
@@ -417,7 +475,8 @@ Network = () ->
       .attr("y1", (d) -> d.source.y)
       .attr("x2", (d) -> d.target.x)
       .attr("y2", (d) -> d.target.y)
-
+  ###
+  
   # tick function for radial layout
   radialTick = (e) ->
     node.each(moveToRadialLayout(e.alpha))
@@ -436,7 +495,7 @@ Network = () ->
   moveToRadialLayout = (alpha) ->
     k = alpha * 0.1
     (d) ->
-      centerNode = groupCenters(d.artist)
+      centerNode = groupCenters(d.id)
       d.x += (centerNode.x - d.x) * k
       d.y += (centerNode.y - d.y) * k
 
@@ -444,13 +503,13 @@ Network = () ->
   # Helper function that returns stroke color for
   # particular node.
   strokeFor = (d) ->
-    d3.rgb(nodeColors(d.artist)).darker().toString()
+    d3.rgb(nodeColors(d.id)).darker().toString()
 
   # Mouseover tooltip function
   showDetails = (d,i) ->
     content = '<p class="main">' + d.name + '</span></p>'
     content += '<hr class="tooltip-hr">'
-    content += '<p class="main">' + d.artist + '</span></p>'
+    content += '<p class="main">' + d.lvl + '</span></p>'
     tooltip.showTooltip(content,d3.event)
 
     # higlight connected links
@@ -498,6 +557,7 @@ activate = (group, link) ->
 $ ->
   myNetwork = Network()
 
+  ###
   d3.selectAll("#layouts a").on "click", (d) ->
     newLayout = d3.select(this).attr("id")
     activate("layouts", newLayout)
@@ -521,6 +581,7 @@ $ ->
   $("#search").keyup () ->
     searchTerm = $(this).val()
     myNetwork.updateSearch(searchTerm)
-
-  d3.json "data/call_me_al.json", (json) ->
+  ###
+  
+  d3.json "data/sitehierarchy.json", (json) ->
     myNetwork("#vis", json)

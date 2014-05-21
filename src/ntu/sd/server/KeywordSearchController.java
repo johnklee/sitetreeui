@@ -26,7 +26,7 @@ import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 
 
-@WebServlet("/url")
+@WebServlet("/search")
 public class KeywordSearchController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	
