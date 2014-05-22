@@ -440,10 +440,11 @@ Network = () ->
     node.on("mouseover", showDetails)
       .on("mouseout", hideDetails)
 
-    # when click node -> redirect to web
-    d3.select("body").on "click", (d) -> 
-      #window.location.replace("http://stackoverflow.com"); 
-      window.open "http://stackoverflow.com", "_blank"  
+    # when click node -> run onClick function
+    node.on("click", onClick ) 
+
+    node.on("dblclick", onDoubleClick ) 
+
 
     node.exit().remove()
 
@@ -602,6 +603,19 @@ Network = () ->
     if link
       link.attr("stroke", "#ddd")
         .attr("stroke-opacity", 0.8)
+
+
+  onClick = (d,i) ->
+    # expland / collapse added here
+    
+  onDoubleClick = (d,i) ->
+    # base node.url load corresponding page
+
+    # open new tab & load page 
+      window.open "http://stackoverflow.com", "_blank" 
+    # overide current page
+      #window.location.replace("http://stackoverflow.com"); 
+
 
   # Final act of Network() function is to return the inner 'network()' function.
   return network
