@@ -440,6 +440,11 @@ Network = () ->
     node.on("mouseover", showDetails)
       .on("mouseout", hideDetails)
 
+    # when click node -> redirect to web
+    d3.select("body").on "click", (d) -> 
+      #window.location.replace("http://stackoverflow.com"); 
+      window.open "http://stackoverflow.com", "_blank"  
+
     node.exit().remove()
 
   # enter/exit display for links
@@ -551,10 +556,18 @@ Network = () ->
 
   # Mouseover tooltip function
   showDetails = (d,i) ->
-    content = '<p class="main">' + d.id + ' ' + d.name + '</span></p>'
+    content = '<p class="main">' + d.name + '</span></p>'
     content += '<hr class="tooltip-hr">'
-    content += '<p class="main">' + d.lvl + ' (' + d.x + ',' + d.y + ')' + '</span></p>'
+    content += '<p class="main">' + "level = " + d.lvl + '</span></p>'
+    content += '<hr class="tooltip-hr">'
+    content += '<p class="main">' + "Id = " + d.id + '</span></p>'
+    content += '<hr class="tooltip-hr">'  
+    content += '<p class="main">' + "cordination:" + '(' + d.x + ',' + d.y + ')' + '</span></p>'      
     tooltip.showTooltip(content,d3.event)
+
+
+    
+
 
     # higlight connected links
     if link
