@@ -7,6 +7,31 @@
 		function level2radius(level){
 			return level*60 + (1+level)*level;
 		}
+		
+		function makeArrow(point, angle, length){// point[0] = x, point[1] = y, angle in degree
+			var radian = 2*Math.PI*angle/360.0;
+			console.log(radian);
+			var rotatedPoint = [];
+			rotatedPoint[0] = Math.cos(radian)*point[0] - Math.sin(radian)*point[1];
+			rotatedPoint[1] = Math.sin(radian)*point[0] + Math.cos(radian)*point[1];
+			
+			var currentLength = Math.sqrt(rotatedPoint[0]*rotatedPoint[0]+rotatedPoint[1]*rotatedPoint[1]);
+			rotatedPoint[0] = length*rotatedPoint[0]/currentLength;
+			rotatedPoint[1] = length*rotatedPoint[1]/currentLength;
+			
+			return rotatedPoint;
+			
+		}
+		
+		function adjustTargetPoint(point, radius){// point[0] = x, point[1] = y, radius is the destination node radius
+			var length = Math.sqrt(point[0]*point[0]+point[1]*point[1]);
+			var adjustedPoint = [];
+			adjustedPoint[0] = point[0]*(length-parseFloat(radius))/length;
+			adjustedPoint[1] = point[1]*(length-parseFloat(radius))/length;
+			return adjustedPoint;
+			
+		}
+		
 		$(document).ready(function(){
 			d3.json("./data/sitehierarchy.json", function(data){
 				console.log(data);
@@ -29,16 +54,25 @@
 			    	}
 			    	
 			    });
-			    
+			 	
 			    level2angleMap = [];
 			    for (var i = 0;i < level2numberOfNodesMap.length;i++ ) {
 			    	level2angleMap[i] = -120;
 			    }
+			    
+			    level2color = [];
+			    var color = d3.scale.category20();
+			    for (var i = 0;i < 20;i++) {
+			    	level2color[i] = color(i);
+			    }
+			    
+
+			    
 			    // set up data
 			    data.nodes.forEach(function(n){
 			    	n.x = (center.x + level2radius(n.lvl) * Math.cos(level2angleMap[n.lvl] * Math.PI / 180));
 			        n.y = (center.y + level2radius(n.lvl) * Math.sin(level2angleMap[n.lvl] * Math.PI / 180));
-			        n.radius = 3;
+			        n.radius = 6;
 			        
 			        nodesG.append("circle")
 			        .attr("id", "node-"+n.id)
@@ -46,7 +80,8 @@
 				    .attr("cx", n.x)
 				    .attr("cy", n.y)
 				    .attr("r", n.radius)
-				    .style("stroke-width", 1.0);
+				    .style("fill", level2color[n.lvl])
+				    .style("stroke-width", 2.0);
 			        
 				      
 			        
@@ -54,15 +89,37 @@
 			    });
 			    
 			    data.links.forEach(function(l){
-			    	console.log("y");
-			    	nodesG.append("line")
+			    	var pointVector = [ $("#node-"+l.target).attr("cx") - $("#node-"+l.source).attr("cx"),
+			    	                    $("#node-"+l.target).attr("cy") - $("#node-"+l.source).attr("cy")];
+			    	var adjustedTarget = adjustTargetPoint(pointVector, $("#node-"+l.target).attr("r"));
+			    	
+			    	pointVector[0] = -1*adjustedTarget[0];
+			    	pointVector[1] = -1*adjustedTarget[1];
+			    	var oneArrowPoint = makeArrow(pointVector, 30, 8);
+			    	var otherArrowPoint = makeArrow(pointVector, -30, 8);
+			    	
+			    	adjustedTarget[0] = adjustedTarget[0] + parseFloat($("#node-"+l.source).attr("cx"));
+			    	adjustedTarget[1] = adjustedTarget[1] + parseFloat($("#node-"+l.source).attr("cy"));
+			    	
+			    	
+			    	
+			    	
+			    	console.log(typeof adjustedTarget[1]);
+			    	nodesG.append("path")
 				      .attr("class", "link")
 				      .attr("stroke", "#ddd")
-				      .attr("stroke-opacity", 0.8)
-				      .attr("x1", $("#node-"+l.source).attr("cx"))
-				      .attr("y1", $("#node-"+l.source).attr("cy"))
-				      .attr("x2", $("#node-"+l.target).attr("cx"))
-				      .attr("y2", $("#node-"+l.target).attr("cy"));
+				      .attr("stroke-opacity", 0.9)
+				      .attr("d", "M " + $("#node-"+l.source).attr("cx") + " " + $("#node-"+l.source).attr("cy")
+				    		  + " L " + adjustedTarget[0] + " " + adjustedTarget[1]
+				    		  + " M " + adjustedTarget[0] + " " + adjustedTarget[1]
+				    		  +  " L " + (parseFloat(adjustedTarget[0])+oneArrowPoint[0]) + " " + (parseFloat(adjustedTarget[1])+oneArrowPoint[1])
+				    		  +  " M " + adjustedTarget[0] + " " + adjustedTarget[1]
+				    		  +  " L " + (parseFloat(adjustedTarget[0])+otherArrowPoint[0]) + " " + (adjustedTarget[1]+otherArrowPoint[1])
+				      );
+				      //.attr("x1", $("#node-"+l.source).attr("cx"))
+				      //.attr("y1", $("#node-"+l.source).attr("cy"))
+				      //.attr("x2", $("#node-"+l.target).attr("cx"))
+				      //.attr("y2", $("#node-"+l.target).attr("cy"));
 			    	
 			    });
 			    
