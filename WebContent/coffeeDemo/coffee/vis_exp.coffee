@@ -35,10 +35,11 @@ RadialPlacement = () ->
   place = (key) ->
     value = radialLocation(center, current, radius)
     values.set(key,value)
+    console.log(value)
     current += increment
     value
 
-   # Given a set of keys, perform some 
+  # Given a set of keys, perform some 
   # magic to create a two ringed radial layout.
   # Expects radius, increment, and center to be set.
   # If there are a small number of keys, just make
@@ -69,17 +70,25 @@ RadialPlacement = () ->
     secondCircleKeys.forEach (k) -> place(k)
 
   setKeysEx = (nodedata) ->
-    for d in [1..getMaxDepth(nodedata)]
+    console.log(getMaxDepth(nodedata))
+    temp_radius = radius
+    for d in [0..getMaxDepth(nodedata)]
       circleKeys = getKeysAtDepth(nodedata,d)
       increment = 360 / circleKeys.length
-      radius = radius + (d-1)*radius/1.8
+      if d == 0
+        radius = 0
+      else if d == 1
+        radius = temp_radius
+      else
+        radius = 1.55*radius
+        console.log(radius)
       circleKeys.forEach (k) -> place(k)
 
   getMaxDepth = (nodedata) ->
     max_depth = 1
     for n in nodedata
-      if nodedata.lvl > max_depth
-        max_depth = nodedata.lvl
+      if n.lvl > max_depth
+        max_depth = n.lvl
     max_depth
   
   getKeysAtDepth = (nodedata, depth) ->
@@ -139,12 +148,14 @@ Network = () ->
   linkedByIndex = {}
   # these will hold the svg groups for
   # accessing the nodes and links display
-  nodesG = null
-  linksG = null
+  nodesG = null;
+  linksG = null;
+  layersG = null;
   # these will point to the circles and lines
   # of the nodes and links
-  node = null
-  link = null
+  node = null;
+  link = null;
+  layer = null;
   # variables to reflect the current settings
   # of the visualization
   layout = "radial"
@@ -152,7 +163,7 @@ Network = () ->
   sort = "songs"
   # groupCenters will store our radial layout for
   # the group by artist layout.
-  groupCenters = null
+  groupCenters = null;
 
   # our force directed layout
   force = d3.layout.force()
@@ -176,6 +187,7 @@ Network = () ->
       .attr("height", height)
     linksG = vis.append("g").attr("id", "links")
     nodesG = vis.append("g").attr("id", "nodes")
+    layersG = vis.append("g").attr("id", "circles")
 
     # setup the size of the force environment
     force.size([width, height])
@@ -210,7 +222,7 @@ Network = () ->
     #originally expect an array
     #currently just passing all in, maybe truncate?
     groupCenters = RadialPlacement().center({"x":width/2, "y":height / 2 - 100})
-        .radius(300).increment(18).data(curNodesData)
+        .radius(100).increment(18).data(curNodesData)
 
     # reset nodes in force layout
     force.nodes(curNodesData)
@@ -230,7 +242,7 @@ Network = () ->
       # if present, remove them from svg 
       if link
         link.data([]).exit().remove()
-        link = null
+        link = null;
 
     # start me up!
     force.start()
@@ -298,10 +310,12 @@ Network = () ->
       n.x = randomnumber=Math.floor(Math.random()*width)
       n.y = randomnumber=Math.floor(Math.random()*height)
       # add radius to the node so we can use it later
+	  # radius ~ node circle's size
       n.radius = circleRadius(n.lvl)
 
     # id's -> node objects
     nodesMap  = mapNodes(data.nodes)
+    # console.log(nodesMap)
 
     # switch links to point to node objects instead of id's
     data.links.forEach (l) ->
@@ -437,7 +451,21 @@ Network = () ->
       .attr("y2", (d) -> d.target.y)
 
     link.exit().remove()
-
+  
+  drawCircles = () ->
+    layers = (Math.pow(1.55,x)*100/2 for x in [0..3])
+    console.log(layers)
+    layer = layersG.selectAll("circle")
+      .data(layers)
+    layer.enter().append("circle")
+      .attr("fill","none")
+      .attr("fill-opacity",0.0)
+      .attr("stroke","black")
+      .attr("stroke-width","1px")
+      .attr("cx",width/2)
+      .attr("cy",height/2-100/2)
+      .attr("r",(d) -> d)
+  
   # switches force to new layout parameters
   ###
   setLayout = (newLayout) ->
@@ -488,6 +516,7 @@ Network = () ->
     if e.alpha < 0.03
       force.stop()
       updateLinks()
+      drawCircles()
 
   # Adjusts x/y for each node to
   # push them towards appropriate location.
