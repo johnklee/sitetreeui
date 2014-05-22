@@ -8,12 +8,13 @@ RadialPlacement = () ->
   # how much to separate each location by
   increment = 20
   # how large to make the layout
-  radius = 200
+  radius = 0
   # where the center of the layout should be
   center = {"x":0, "y":0}
   # what angle to start at
   start = -120
   current = start
+  maxDepth = 0
 
   # Given an center point, angle, and radius length,
   # return a radial position for that angle
@@ -32,10 +33,10 @@ RadialPlacement = () ->
     value
 
   # Gets a new location for input key
-  place = (key) ->
-    value = radialLocation(center, current, radius)
+  place = (key, rad) ->
+    value = radialLocation(center, current, rad)
     values.set(key,value)
-    console.log(value)
+    #console.log(value)
     current += increment
     value
 
@@ -70,26 +71,26 @@ RadialPlacement = () ->
     secondCircleKeys.forEach (k) -> place(k)
 
   setKeysEx = (nodedata) ->
-    console.log(getMaxDepth(nodedata))
-    temp_radius = radius
+    temp_radius = 0
     for d in [0..getMaxDepth(nodedata)]
       circleKeys = getKeysAtDepth(nodedata,d)
       increment = 360 / circleKeys.length
       if d == 0
-        radius = 0
+        temp_radius = 0
       else if d == 1
-        radius = temp_radius
+        temp_radius = radius
       else
-        radius = 1.55*radius
-        console.log(radius)
-      circleKeys.forEach (k) -> place(k)
+        temp_radius = 1.55*temp_radius
+      console.log(temp_radius)
+      circleKeys.forEach (k) -> place(k,temp_radius)
 
   getMaxDepth = (nodedata) ->
     max_depth = 1
     for n in nodedata
       if n.lvl > max_depth
         max_depth = n.lvl
-    max_depth
+    maxDepth = max_depth
+    maxDepth
   
   getKeysAtDepth = (nodedata, depth) ->
     # nodesAtSameDepth is an array
@@ -140,7 +141,10 @@ Network = () ->
   # variables we want to access
   # in multiple places of Network
   width = 960
-  height = 800
+  height = 600
+  # radial base radius & base increment
+  r = 100
+  inc = 18
   # allData will store the unfiltered data
   allData = []
   curLinksData = []
@@ -185,16 +189,17 @@ Network = () ->
     vis = d3.select(selection).append("svg")
       .attr("width", width)
       .attr("height", height)
+    layersG = vis.append("g").attr("id", "layers")
     linksG = vis.append("g").attr("id", "links")
     nodesG = vis.append("g").attr("id", "nodes")
-    layersG = vis.append("g").attr("id", "circles")
 
     # setup the size of the force environment
     force.size([width, height])
 
-    # setLayout("force")
-    force.on("tick", radialTick).charge(charge)
-    # setFilter("all")
+    #setLayout("force")
+    #force.on("tick", radialTick).charge(charge)
+    #setFilter("all")
+    force.on("tick", radialTick)
 
     # perform rendering and start force layout
     update()
@@ -221,8 +226,8 @@ Network = () ->
     ###
     #originally expect an array
     #currently just passing all in, maybe truncate?
-    groupCenters = RadialPlacement().center({"x":width/2, "y":height / 2 - 100})
-        .radius(100).increment(18).data(curNodesData)
+    groupCenters = RadialPlacement().center({"x":width/2, "y":height / 2})
+        .radius(r).increment(inc).data(curNodesData)
 
     # reset nodes in force layout
     force.nodes(curNodesData)
@@ -244,7 +249,7 @@ Network = () ->
         link.data([]).exit().remove()
         link = null;
 
-    # start me up!
+    # start me up
     force.start()
 
   # Public function to switch between layouts
@@ -311,7 +316,7 @@ Network = () ->
       n.y = randomnumber=Math.floor(Math.random()*height)
       # add radius to the node so we can use it later
 	  # radius ~ node circle's size
-      n.radius = circleRadius(n.lvl)
+      n.radius = circleRadius(2)
 
     # id's -> node objects
     nodesMap  = mapNodes(data.nodes)
@@ -453,17 +458,27 @@ Network = () ->
     link.exit().remove()
   
   drawCircles = () ->
-    layers = (Math.pow(1.55,x)*100/2 for x in [0..3])
+    # we assume the nodes are ordered in ASC depth order
+    curCenterX = curNodesData[0].x
+    curCenterY = curNodesData[0].y
+    tally = 0
+    layers = []
+    for node in curNodesData
+      if node.lvl > tally
+        [a,b] = [node.x - curCenterX, node.y - curCenterY]
+        layers.push(Math.sqrt(Math.pow(a,2) + Math.pow(b,2)))
+        tally = node.lvl
     console.log(layers)
     layer = layersG.selectAll("circle")
       .data(layers)
     layer.enter().append("circle")
       .attr("fill","none")
       .attr("fill-opacity",0.0)
-      .attr("stroke","black")
+      .attr("stroke","gray")
       .attr("stroke-width","1px")
+      .attr("stroke-dasharray","10,10")
       .attr("cx",width/2)
-      .attr("cy",height/2-100/2)
+      .attr("cy",height/2)
       .attr("r",(d) -> d)
   
   # switches force to new layout parameters
@@ -513,10 +528,10 @@ Network = () ->
       .attr("cx", (d) -> d.x)
       .attr("cy", (d) -> d.y)
 
-    if e.alpha < 0.03
+    if e.alpha < 0.02
       force.stop()
-      updateLinks()
       drawCircles()
+      updateLinks()
 
   # Adjusts x/y for each node to
   # push them towards appropriate location.
@@ -536,9 +551,9 @@ Network = () ->
 
   # Mouseover tooltip function
   showDetails = (d,i) ->
-    content = '<p class="main">' + d.name + '</span></p>'
+    content = '<p class="main">' + d.id + ' ' + d.name + '</span></p>'
     content += '<hr class="tooltip-hr">'
-    content += '<p class="main">' + d.lvl + '</span></p>'
+    content += '<p class="main">' + d.lvl + ' (' + d.x + ',' + d.y + ')' + '</span></p>'
     tooltip.showTooltip(content,d3.event)
 
     # higlight connected links
