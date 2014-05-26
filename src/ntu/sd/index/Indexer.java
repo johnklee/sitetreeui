@@ -35,7 +35,7 @@ public class Indexer implements Observer{
 	private IndexWriter indexWriter;
 	
 	public Indexer(String rootPath,String uid, String rootUrl) throws IOException {
-		indexDirectoryPath = rootPath + uid + "_" + rootUrl.replaceAll("\\:|\\.|\\?|\\/|\\&|\\~", "");
+		indexDirectoryPath = rootPath + uid + "_" + rootUrl.replaceAll("\\:|\\.|\\?|\\/|\\&", "");
 		Directory indexDirectory = new SimpleFSDirectory(new File(indexDirectoryPath), new SimpleFSLockFactory());
 		
 		Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_47);

@@ -33,22 +33,27 @@
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 <script type="text/javascript">
 	Ext.onReady(function() {
+		/* global */
+		var toolbar;
+		var vis;
+		var viewport;
+		
+		/* functions */
 		function helloWorld() {
 			Ext.Msg.alert("Info", "Another Hello World!");
 		}
 		function onMenuItem(item) {
 			Ext.Msg.alert('Info', item.text);
 		}
-
-		// Ext.Msg.alert("Info", "Welcome to SiteTreeUI!");
-		// http://docs-origin.sencha.com/extjs/3.4.0/#!/api/Ext.Toolbar
-
+		function initialize(btn,text){
+			if (btn == 'ok'){
+				vis.urlinput(text);
+				viewport.doLayout();
+			}
+		}
+		
 		/* TOOLBAR */
-		var toolbar = new Ext.Toolbar();
-		toolbar.addButton([ {
-			text : 'Another Hello World',
-			handler : helloWorld
-		} ]);
+		
 		/*
 		 var infoMenu = new Ext.menu.Menu({
 		 items : [ {
@@ -77,23 +82,16 @@
 			contructor : function(config) {
 				Myd3panel.superclass.constructor.call(this, config);
 			},
-
+			
+			/*
 			initComponent : function() {
-				/*
-				Ext.apply(this, {
-					layout : 'fit',
-					title : 'single view',
-				});
-				 */
 				Myd3panel.superclass.initComponent.apply(this, arguments);
-				Ext.apply(this,{
-					html: '<div class="customd3" style="width:100%; height:100%"></div>'
-				});
 			},
+			*/
 			
 			listeners : {
 				afterrender : function(){
-					this.drawMap();
+					//this.drawMap();
 				}	
 			},
 
@@ -105,20 +103,30 @@
 			loadConfig : function() {
 				//raise event
 			},
+			
+			urlinput : function(url){
+				mask = Ext.Msg.wait("Loading...");
+				this.drawMap(url, mask);
+				//mask.hide();
+			},
 
-			drawMap : function() {
+			drawMap : function(url, mask) {
 				var width = 960, height = 500;
 				var color = d3.scale.category20();
 				var force = d3.layout.force().charge(-120).linkDistance(30)
 						.size([ width, height ]);
 
-				var target = d3.select(".customd3");
+				var target = d3.select("#customd3");
 				var svg = target.append("svg").attr("width", width).attr("height",height);
 		        //var svg = d3.select("body").append("svg").attr("width", width).attr("height", height);
 				//var svg = d3.select('#' + this.id + '-innerCt').append("svg").attr("width", width).attr("height", height);
 				
-				d3.json("miserables.json", function(error, graph) {
-					force.nodes(graph.nodes).links(graph.links).start();
+				console.log(url+" is expected to be sent to servlet");
+				d3.json("/SiteTreeUI/FDGraph", function(error, graph) {
+					force.nodes(graph.nodes).links(graph.links);
+					console.log("finished loading");
+					mask.hide();
+					force.start();
 
 					var link = svg.selectAll(".link").data(graph.links).enter()
 							.append("line").attr("class", "link").style(
@@ -157,23 +165,28 @@
 			} // close drawMap
 		}); // close My.D3panel
 
-		var d3ex = new Myd3panel({
+		toolbar = new Ext.Toolbar();
+		toolbar.addButton([ {
+			text : 'Another Hello World',
+			handler : helloWorld
+		} ]);
+		vis = new Myd3panel({
 			title : "in-page d3 demo"
 		});
-
-		/* VIEWPORT */
-		var viewport = new Ext.Viewport({
+		viewport = new Ext.Viewport({
 			layout : 'Auto',
 			autoshow : true,
-			items : [ toolbar, d3ex ]
+			items : [ toolbar, vis ]
 		});
-		viewport.doLayout();
+		Ext.Msg.prompt("Welcome to SiTree!", "Enter URL:", initialize);
+		
 	});
 </script>
 <title>Hello World</title>
 </head>
 <body>
 	<div id='toolbar'></div>
+	<div id="customd3" style="width:100%; height:100%"></div>
 	Above is rendered by ExtJS.
 	<br />
 </body>

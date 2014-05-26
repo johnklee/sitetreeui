@@ -11,7 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.json.simple.JSONObject;
 
 import ntu.sd.index.Indexer;
 import ntu.sd.search.RelevantPage;
@@ -48,10 +47,9 @@ public class CrawlPerfIndServlet extends HttpServlet {
 	    
 	}
 	
-	private CrawlController createCrawlController(String personalStorageFolder) throws Exception {
-		
+	private CrawlController createCrawlController() throws Exception {
 		CrawlConfig config = new CrawlConfig();        
-        config.setCrawlStorageFolder(personalStorageFolder);
+        config.setCrawlStorageFolder(storageFolder);
         
         config.setPolitenessDelay(20);
         
@@ -74,18 +72,17 @@ public class CrawlPerfIndServlet extends HttpServlet {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		System.out.println("click");
+		
 		String rootUrl = request.getParameter("url");  
 	    if(rootUrl == null) {  
 	        return;  
 	    }
 	    
 		try {
-			Indexer indexer = new Indexer(storageFolder,request.getSession().getId(),rootUrl);
-			
-			CrawlController controller = createCrawlController(indexer.getIndexDirectoryPath());
+			CrawlController controller = createCrawlController();
 			controller.addSeed(rootUrl);
 			
+			Indexer indexer = new Indexer(storageFolder,request.getSession().getId(),rootUrl);
 			
 			SiTree siTree = new SiTree();
 			
@@ -101,18 +98,14 @@ public class CrawlPerfIndServlet extends HttpServlet {
 			controller.shutdown();		
 			TestCrawler.Clear();
 			controller = null;
-			siTree.close();
+			
 			request.getSession().setAttribute(rootUrl, indexer.getIndexDirectoryPath());
 			indexer.close();
 
 		    
 	        response.setContentType("text/html; charset=UTF-8");
 			response.setCharacterEncoding("UTF-8");
-			
-			JSONObject obj = new JSONObject();
-			obj.put("error", 1);
-			obj.put("message", "hello");
-		    response.getWriter().write(obj.toJSONString());
+		    response.getWriter().write("<form method='post'><input type='text' name='keyword'/><input type='submit'/></form>");  
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

@@ -189,12 +189,10 @@ Network = () ->
     vis = d3.select(selection).append("svg")
       .attr("width", width)
       .attr("height", height)
-      .call(d3.behavior.zoom().scaleExtent([1, 8]).on("zoom", zoom))
- 
     layersG = vis.append("g").attr("id", "layers")
     linksG = vis.append("g").attr("id", "links")
     nodesG = vis.append("g").attr("id", "nodes")
- 
+
     # setup the size of the force environment
     force.size([width, height])
 
@@ -447,8 +445,6 @@ Network = () ->
 
     node.on("dblclick", onDoubleClick ) 
 
-  
-
 
     node.exit().remove()
 
@@ -570,10 +566,6 @@ Network = () ->
     content += '<p class="main">' + "cordination:" + '(' + d.x + ',' + d.y + ')' + '</span></p>'      
     tooltip.showTooltip(content,d3.event)
 
-
-    
-
-
     # higlight connected links
     if link
       link.attr("stroke", (l) ->
@@ -611,7 +603,6 @@ Network = () ->
 
   onClick = (d,i) ->
     # expland / collapse added here
-  
     
   onDoubleClick = (d,i) ->
     # base node.url load corresponding page
@@ -620,14 +611,6 @@ Network = () ->
       window.open "http://stackoverflow.com", "_blank" 
     # overide current page
       #window.location.replace("http://stackoverflow.com"); 
-
-  zoom = (d,i,e) ->
-    node.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
-    link.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
-    layer.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
-    #alert("zooming")
-
-
 
 
   # Final act of Network() function is to return the inner 'network()' function.
