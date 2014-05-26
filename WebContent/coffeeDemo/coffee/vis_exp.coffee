@@ -155,11 +155,13 @@ Network = () ->
   nodesG = null;
   linksG = null;
   layersG = null;
+  markersG = null;
   # these will point to the circles and lines
   # of the nodes and links
   node = null;
   link = null;
   layer = null;
+  #marker = null;
   # variables to reflect the current settings
   # of the visualization
   layout = "radial"
@@ -192,6 +194,7 @@ Network = () ->
       .call(d3.behavior.zoom().scaleExtent([1, 8]).on("zoom", zoom))
     layersG = vis.append("g").attr("id", "layers")
     linksG = vis.append("g").attr("id", "links")
+    markersG = vis.append("defs").attr("id", "markers")
     nodesG = vis.append("g").attr("id", "nodes")
 
     # setup the size of the force environment
@@ -310,15 +313,6 @@ Network = () ->
     countExtent = d3.extent(data.nodes, (d) -> d.lvl)
     circleRadius = d3.scale.sqrt().range([3, 12]).domain(countExtent)
 
-    data.nodes.forEach (n) ->
-      # set initial x/y to values within the width/height
-      # of the visualization
-      n.x = randomnumber=Math.floor(Math.random()*width)
-      n.y = randomnumber=Math.floor(Math.random()*height)
-      # add radius to the node so we can use it later
-	  # radius ~ node circle's size
-      n.radius = circleRadius(2)
-
     # id's -> node objects
     nodesMap  = mapNodes(data.nodes)
     # console.log(nodesMap)
@@ -330,6 +324,17 @@ Network = () ->
 
       # linkedByIndex is used for link sorting
       linkedByIndex["#{l.source.id},#{l.target.id}"] = 1
+      
+    data.nodes.forEach (n) ->
+      # set initial x/y to values within the width/height
+      # of the visualization
+      n.x = randomnumber=Math.floor(Math.random()*width)
+      n.y = randomnumber=Math.floor(Math.random()*height)
+      # add radius to the node so we can use it later
+      # radius ~ node circle's size
+      n.radius = circleRadius(2)
+      # calculate subtree collapsible
+      # n.subtree = calcSubtree(n);
 
     data
 
@@ -341,6 +346,12 @@ Network = () ->
       nodesMap.set(n.id, n)
     nodesMap
 
+  # Helper function to find node's subtree
+  # Returns an array of node id's
+  calcSubtree = (node) ->
+    subtree = []
+    
+    
   # Helper function that returns an associative array
   # with counts of unique attr in nodes
   # attr is value stored in node, like 'artist'
@@ -451,6 +462,33 @@ Network = () ->
 
   # enter/exit display for links
   updateLinks = () ->
+  
+    markersG.selectAll("marker").data(["end"])
+      .enter().append("marker")    
+        .attr("id", String)
+        .attr("viewBox", "0 -5 10 10")
+        .attr("refX", 15)
+        .attr("refY", -1.5)
+        .attr("markerWidth", 6)
+        .attr("markerHeight", 6)
+        .attr("orient", "auto")
+        .attr("fill", "#ddd")
+      .append("path")
+        .attr("d", "M0,-5L10,0L0,5");
+        
+    markersG.selectAll("marker_h").data(["end_h"])
+      .enter().append("marker")    
+        .attr("id", String)
+        .attr("viewBox", "0 -5 10 10")
+        .attr("refX", 15)
+        .attr("refY", -1.5)
+        .attr("markerWidth", 6)
+        .attr("markerHeight", 6)
+        .attr("orient", "auto")
+        .attr("fill", "#555")
+      .append("path")
+        .attr("d", "M0,-5L10,0L0,5");
+  
     link = linksG.selectAll("line.link")
       .data(curLinksData, (d) -> "#{d.source.id}_#{d.target.id}")
     link.enter().append("line")
@@ -461,6 +499,7 @@ Network = () ->
       .attr("y1", (d) -> d.source.y)
       .attr("x2", (d) -> d.target.x)
       .attr("y2", (d) -> d.target.y)
+      .attr("marker-end","url(#end)")
 
     link.exit().remove()
   
@@ -535,7 +574,7 @@ Network = () ->
       .attr("cx", (d) -> d.x)
       .attr("cy", (d) -> d.y)
 
-    if e.alpha < 0.02
+    if e.alpha < 0.03
       force.stop()
       drawCircles()
       updateLinks()
@@ -571,15 +610,20 @@ Network = () ->
     if link
       link.attr("stroke", (l) ->
         if l.source == d or l.target == d then "#555" else "#ddd"
-      )
+        )
         .attr("stroke-opacity", (l) ->
           if l.source == d or l.target == d then 1.0 else 0.5
+        )
+        .attr("marker-end", (l) ->
+          if l.source == d or l.target == d then "url(#end_h)" else "url(#end)"
         )
 
       # link.each (l) ->
       #   if l.source == d or l.target == d
       #     d3.select(this).attr("stroke", "#555")
 
+    # highlight connected links' markers
+    
     # highlight neighboring nodes
     # watch out - don't mess with node if search is currently matching
     node.style("stroke", (n) ->
@@ -600,10 +644,14 @@ Network = () ->
     if link
       link.attr("stroke", "#ddd")
         .attr("stroke-opacity", 0.8)
+        .attr("marker-end", "url(#end)")
 
 
   onClick = (d,i) ->
-    # expland / collapse added here
+    if !(d.collapsed)
+      # calculate subtree and store in
+      console.log("not collapsed")
+      
     
   onDoubleClick = (d,i) ->
     # base node.url load corresponding page
