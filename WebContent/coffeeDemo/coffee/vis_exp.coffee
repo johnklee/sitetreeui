@@ -149,7 +149,9 @@ Network = () ->
   allData = []
   curLinksData = []
   curNodesData = []
-  linkedByIndex = {}
+  nodesMap = d3.map()
+  linkByIndex = d3.map()
+  invLinkByIndex = d3.map()
   # these will hold the svg groups for
   # accessing the nodes and links display
   nodesG = null;
@@ -321,9 +323,22 @@ Network = () ->
     data.links.forEach (l) ->
       l.source = nodesMap.get(l.source)
       l.target = nodesMap.get(l.target)
-
-      # linkedByIndex is used for link sorting
-      linkedByIndex["#{l.source.id},#{l.target.id}"] = 1
+      
+      # linkByIndex is used for link sorting
+      if linkByIndex.has(l.source.id)
+        temp = linkByIndex.get(l.source.id)
+        temp.push(l.target.id) # this returns NOT the array itself!
+        linkByIndex.set(l.source.id, temp)
+      else
+        linkByIndex.set(l.source.id, [l.target.id])
+        
+      # invLinkByIndex is used to find indegree
+      if invLinkByIndex.has(l.target.id)
+        temp = invLinkByIndex.get(l.target.id)
+        temp.push(l.source.id) # this returns NOT the array itself!
+        invLinkByIndex.set(l.target.id, temp)
+      else
+        invLinkByIndex.set(l.target.id, [l.source.id])
       
     data.nodes.forEach (n) ->
       # set initial x/y to values within the width/height
@@ -333,8 +348,9 @@ Network = () ->
       # add radius to the node so we can use it later
       # radius ~ node circle's size
       n.radius = circleRadius(2)
-      # calculate subtree collapsible
-      # n.subtree = calcSubtree(n);
+      # calculate subgraph collapsible
+      n.collapsed = false;
+      #n.subgraph = calcSubgraph(n.id)
 
     data
 
@@ -346,12 +362,32 @@ Network = () ->
       nodesMap.set(n.id, n)
     nodesMap
 
-  # Helper function to find node's subtree
+  # Helper function to find node's subgraph
   # Returns an array of node id's
-  calcSubtree = (node) ->
-    subtree = []
-    
-    
+  calcSubgraph = (nodeid) ->
+    subgraph = []
+    # check if indegree disqualifies this node
+    if invLinkByIndex.has(nodeid)
+      test = true;
+      for i in invLinkByIndex.get(nodeid)
+        test = test & checkShareParent(i,nodeid)
+        if (test == false)
+          # disqualified, discard any subgraph of this node
+          return []
+    # node qualified, check its subgraph
+    if linkByIndex.has(nodeid)
+      for i in linkByIndex.get(nodeid)
+        if nodesMap.get(i).lvl > nodesMap.get(nodeid).lvl
+          jQuery.union(subgraph,calcSubgraph(i))
+    subgraph.push(nodeid)
+    subgraph
+  
+  # Helper function to check if two node share same parent
+  # parent must be either the collapse root or STRICTLY below its paths
+  checkShareParent = (a, b) ->
+    test = true;
+    return test
+  
   # Helper function that returns an associative array
   # with counts of unique attr in nodes
   # attr is value stored in node, like 'artist'
@@ -364,10 +400,16 @@ Network = () ->
 
   # Given two nodes a and b, returns true if
   # there is a link between them.
-  # Uses linkedByIndex initialized in setupData
+  # Uses linkByIndex initialized in setupData
   neighboring = (a, b) ->
-    linkedByIndex[a.id + "," + b.id] or
-      linkedByIndex[b.id + "," + a.id]
+    cond1 = false;
+    cond2 = false;
+    if linkByIndex.has(a.id)
+      cond1 = true if (linkByIndex.get(a.id).indexOf(b.id) != -1)
+    if linkByIndex.has(b.id)
+      cond2 = true if (linkByIndex.get(b.id).indexOf(a.id) != -1)
+    cond1 or cond2
+    #linkByIndex[a.id + "," + b.id] or linkByIndex[b.id + "," + a.id]
 
   # Removes nodes from input array
   # based on current filter setting.
@@ -649,7 +691,7 @@ Network = () ->
 
   onClick = (d,i) ->
     if !(d.collapsed)
-      # calculate subtree and store in
+      # calculate subgraph and store in
       console.log("not collapsed")
       
     
