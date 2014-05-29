@@ -3,7 +3,9 @@ package modules.server.utils;
 import java.io.File;
 import java.util.Random;
 
+import ntu.sd.index.Indexer;
 import ntu.sd.utils.SiTree;
+import ntu.sd.utils.SiTree.Node;
 import demo.MyCrawler;
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
 import edu.uci.ics.crawler4j.crawler.CrawlController;
@@ -89,7 +91,11 @@ public class CrawlerMediator implements Runnable{
 	{
 		try
 		{
-			Thread.sleep((int)(rdm.nextFloat()*3000));
+			Indexer indexer = new Indexer("C:/Users/user/temp/",url);
+			for (Node node : siTree.nodeMap.values()){
+				indexer.processPage(node.page);
+			}
+			indexer.close();
 			return true;
 		}
 		catch(Exception e){return false;}
@@ -117,5 +123,6 @@ public class CrawlerMediator implements Runnable{
 		System.out.printf("\t[Test] Perfing...\n");
 		if(!perf()){stat=-1; errMsg="perf fail!"; return;}
 		stat=0;
+		siTree.close();
 	}
 }
