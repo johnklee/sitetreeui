@@ -379,7 +379,7 @@ Network = () ->
       for i in linkByIndex.get(nodeid)
         if nodesMap.get(i).lvl > nodesMap.get(nodeid).lvl
           jQuery.union(subgraph,calcSubgraph(i))
-    subgraph.push(nodeid)
+    subgraph.push(nodeid) # lastly add itself
     subgraph
   
   # Helper function to check if two node share same parent
