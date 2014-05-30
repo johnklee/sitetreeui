@@ -34,6 +34,10 @@ public class Indexer implements Observer{
 	private String indexDirectoryPath;	
 	private IndexWriter indexWriter;
 	
+	public Indexer(String rootPath, String rootUrl) throws IOException {
+		this(rootPath, "default", rootUrl);
+	}
+	
 	public Indexer(String rootPath,String uid, String rootUrl) throws IOException {
 		indexDirectoryPath = rootPath + uid + "_" + rootUrl.replaceAll("\\:|\\.|\\?|\\/|\\&|\\~", "");
 		Directory indexDirectory = new SimpleFSDirectory(new File(indexDirectoryPath), new SimpleFSLockFactory());
@@ -51,6 +55,27 @@ public class Indexer implements Observer{
 	public void close() throws IOException{
 		if (indexWriter != null) indexWriter.close();
 	}
+	
+	public void processPage (Page page) {
+		WebURL url = page.getWebURL();
+
+		
+		if (page.getContentType().equals("text/html")) {
+			String html = Jsoup.parse(page.getParseData().toString()).text();
+			Document document = new Document();
+			document.add(new StringField(FIELD_URL, url.getURL(), Field.Store.YES));
+			document.add(new TextField(FIELD_BODY, html, Field.Store.YES));
+			document.add(new StringField(FIELD_ID, String.valueOf(url.getDocid()), Field.Store.YES));
+			try {
+				indexWriter.addDocument(document);
+				
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			
+		}
+		
+	}
 
 	@Override
 	public void update(Observable o, Object obj) {
@@ -60,23 +85,8 @@ public class Indexer implements Observer{
 		{
 			/*Page Done*/	
 			Page page = (Page)rt.get(1);
-			WebURL url = page.getWebURL();
-
+			processPage(page);
 			
-			if (page.getContentType().equals("text/html")) {
-				String html = Jsoup.parse(page.getParseData().toString()).text();
-				Document document = new Document();
-				document.add(new StringField(FIELD_URL, url.getURL(), Field.Store.YES));
-				document.add(new TextField(FIELD_BODY, html, Field.Store.YES));
-				document.add(new StringField(FIELD_ID, String.valueOf(url.getDocid()), Field.Store.YES));
-				try {
-					indexWriter.addDocument(document);
-					
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				
-			}
 			
 			
 			
