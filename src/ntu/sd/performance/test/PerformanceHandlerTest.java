@@ -51,7 +51,7 @@ public class PerformanceHandlerTest {
 		
 		//####################
 		
-		while(!ph.IsDone()){
+		while(!ph.isDone()){
 			//System.out.println("nd");
 		}
 		for(int j = 0 ; j < ph.getResultList().size() ; j++) {

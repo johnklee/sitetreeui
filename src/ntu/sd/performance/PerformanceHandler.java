@@ -41,7 +41,6 @@ public class PerformanceHandler implements Observer {
 	@Override
 	public void update(Observable o, Object obj) {
 		// TODO Auto-generated method stub
-		// needs to know whether it is the last page of the user-requested website
 				Tuple rt = (Tuple)obj;	
 				if(rt.getBoolean(0))
 				{
@@ -66,7 +65,7 @@ public class PerformanceHandler implements Observer {
 
 	}
 	
-	public boolean IsDone() {
+	public boolean isDone() {
 		if(threadGroup.activeCount()==0)
 			return true;
 		return false;
