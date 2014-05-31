@@ -1,4 +1,4 @@
-package ntu.sd.perfomance.test;
+package ntu.sd.performance.test;
 
 import static org.junit.Assert.*;
 import edu.uci.ics.crawler4j.fetcher.PageFetchResult;
