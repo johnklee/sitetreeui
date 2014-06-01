@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Random;
 
 import ntu.sd.index.Indexer;
+import ntu.sd.performance.PerformanceHandler;
 import ntu.sd.performance.strategy.AnalysisStrategy;
 import ntu.sd.performance.strategy.yslow.FakeYslowStrategy;
 import ntu.sd.performance.strategy.yslow.YslowStrategy;
@@ -27,7 +28,7 @@ public class CrawlerMediator implements Runnable{
 	public String 				errMsg;
 	Random	 					rdm = new Random();
 	public SiTree 				siTree=null;
-	public Map<String,Result>	aRstMap = new HashMap<String,Result>();
+	public Map<Integer,Result>	aRstMap = new HashMap<Integer,Result>();
 	
 	public CrawlerMediator(String url){this.url = url;}
 	
@@ -120,13 +121,32 @@ public class CrawlerMediator implements Runnable{
 		{
 			
 			AnalysisStrategy as = new YslowStrategy();
+			PerformanceHandler ph = new PerformanceHandler();
+			ph.setStrategy(as);
 			for (Node node : siTree.nodeMap.values())
 			{
+				
 				String url;
-				if(node.isValid) url = node.url.getURL();				
-				else url = node.pageFetchResult.getOriginalURL();
-				aRstMap.put(url, as.analyze(url));
+				int id;
+				if(node.isValid) {
+					url = node.url.getURL();
+					id = node.url.getDocid();
+					ph.newAnalyze(id, url);
+					
+				}
+				
+				//else url = node.pageFetchResult.getOriginalURL();
+
 			}
+			
+			//wait for done
+			while(!ph.isDone());
+			
+			for (Result rl:ph.getResultList())
+			{
+				aRstMap.put(rl.getId(),rl);
+			}
+	
 			return true;
 			
 			
