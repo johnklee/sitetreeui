@@ -50,19 +50,27 @@ public class PerformanceHandler implements Observer {
 					
 					int id = page.getDocid();
 					String URL = page.getURL();
-					PHThread thread=new PHThread(threadGroup,"group");
-					thread.setPHThread(id, URL, strategy, ResultList);
-					thread.start();
+					newAnalyze(id,URL);
 
 
 				}
 				else
 				{
 					/*Page Fail*/
-					System.out.print("page fail");
+					//System.out.print("page fail");
 
 				}
 
+	}
+	
+	
+	
+
+	public void newAnalyze(int id,String URL) {
+		// TODO Auto-generated method stub
+					PHThread thread=new PHThread(threadGroup,"group");
+					thread.setPHThread(id, URL, strategy, ResultList);
+					thread.start();
 	}
 	
 	public boolean isDone() {
