@@ -23,7 +23,8 @@ public class YslowStrategy implements AnalysisStrategy {
 			YslowTranslator yt = new YslowTranslator();
 			String dir =System.getProperty("user.dir");
 			//System.out.println(dir);
-		    String command = "phantomjs\\phantomjs phantomjs\\yslow.js --info grade ";
+			String absoultePath = "C:\\";
+		    String command = absoultePath +"phantomjs\\phantomjs "+absoultePath+"phantomjs\\yslow.js --info grade ";
 		    //URL="http://www.yahoo.com/";
 		    Process child = Runtime.getRuntime().exec(command +URL);
 		    Result res;

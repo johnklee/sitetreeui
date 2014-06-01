@@ -8,6 +8,7 @@ import java.util.Random;
 import ntu.sd.index.Indexer;
 import ntu.sd.performance.strategy.AnalysisStrategy;
 import ntu.sd.performance.strategy.yslow.FakeYslowStrategy;
+import ntu.sd.performance.strategy.yslow.YslowStrategy;
 import ntu.sd.performance.util.Result;
 import ntu.sd.utils.SiTree;
 import ntu.sd.utils.SiTree.Node;
@@ -117,6 +118,19 @@ public class CrawlerMediator implements Runnable{
 	{
 		try
 		{
+			
+			AnalysisStrategy as = new YslowStrategy();
+			for (Node node : siTree.nodeMap.values())
+			{
+				String url;
+				if(node.isValid) url = node.url.getURL();				
+				else url = node.pageFetchResult.getOriginalURL();
+				aRstMap.put(url, as.analyze(url));
+			}
+			return true;
+			
+			
+			/*
 			AnalysisStrategy as = new FakeYslowStrategy();
 			for (Node node : siTree.nodeMap.values())
 			{
@@ -126,6 +140,7 @@ public class CrawlerMediator implements Runnable{
 				aRstMap.put(url, as.analyze(url));
 			}
 			return true;
+			*/
 		}
 		catch(Exception e){
 			e.printStackTrace();
