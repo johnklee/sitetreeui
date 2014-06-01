@@ -74,50 +74,50 @@ public class CrawlPerfIndServlet extends HttpServlet {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		System.out.println("click");
-		String rootUrl = request.getParameter("url");  
-	    if(rootUrl == null) {  
-	        return;  
-	    }
-	    
-		try {
-			Indexer indexer = new Indexer(storageFolder,request.getSession().getId(),rootUrl);
-			
-			CrawlController controller = createCrawlController(indexer.getIndexDirectoryPath());
-			controller.addSeed(rootUrl);
-			
-			
-			SiTree siTree = new SiTree();
-			
-			controller.addObserver(indexer);
-			controller.addObserver(siTree);
-			controller.start(TestCrawler.class, 10);
-			
-			while (!controller.isFinished()) {
-				
-			}
-			
-			controller.deleteObservers();
-			controller.shutdown();		
-			TestCrawler.Clear();
-			controller = null;
-			siTree.close();
-			request.getSession().setAttribute(rootUrl, indexer.getIndexDirectoryPath());
-			indexer.close();
-
-		    
-	        response.setContentType("text/html; charset=UTF-8");
-			response.setCharacterEncoding("UTF-8");
-			
-			JSONObject obj = new JSONObject();
-			obj.put("error", 1);
-			obj.put("message", "hello");
-		    response.getWriter().write(obj.toJSONString());
-
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		System.out.println("click");
+//		String rootUrl = request.getParameter("url");  
+//	    if(rootUrl == null) {  
+//	        return;  
+//	    }
+//	    
+//		try {
+//			Indexer indexer = new Indexer(storageFolder,request.getSession().getId(),rootUrl);
+//			
+//			CrawlController controller = createCrawlController(indexer.getIndexDirectoryPath());
+//			controller.addSeed(rootUrl);
+//			
+//			
+//			SiTree siTree = new SiTree();
+//			
+//			controller.addObserver(indexer);
+//			controller.addObserver(siTree);
+//			controller.start(TestCrawler.class, 10);
+//			
+//			while (!controller.isFinished()) {
+//				
+//			}
+//			
+//			controller.deleteObservers();
+//			controller.shutdown();		
+//			TestCrawler.Clear();
+//			controller = null;
+//			siTree.close();
+//			request.getSession().setAttribute(rootUrl, indexer.getIndexDirectoryPath());
+//			indexer.close();
+//
+//		    
+//	        response.setContentType("text/html; charset=UTF-8");
+//			response.setCharacterEncoding("UTF-8");
+//			
+//			JSONObject obj = new JSONObject();
+//			obj.put("error", 1);
+//			obj.put("message", "hello");
+//		    response.getWriter().write(obj.toJSONString());
+//
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		
 	}
 }

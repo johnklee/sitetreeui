@@ -76,7 +76,7 @@ public class CrawlAndIndexServlet extends HttpServlet {
 			CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
 			controller.getConfig().setMaxDownloadSize(100*CrawlConfig.MB);
 			controller.addSeed(rootUrl);
-			Indexer indexer = new Indexer(storageFolder,request.getSession().getId(),rootUrl);
+			Indexer indexer = new Indexer(request.getSession().getId(),rootUrl);
 			SiTree siTree = new SiTree();
 			controller.addObserver(indexer);
 			controller.addObserver(siTree);
@@ -95,7 +95,6 @@ public class CrawlAndIndexServlet extends HttpServlet {
     		pageFetcher.shutDown();
     		TestCrawler.Clear();
     		controller = null;
-    		request.getSession().setAttribute(SESSION_INDEX_DIRECTORY, indexer.getIndexDirectoryPath());
     		indexer.close();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

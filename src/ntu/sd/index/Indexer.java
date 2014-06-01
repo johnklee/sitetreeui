@@ -33,13 +33,30 @@ public class Indexer implements Observer{
 	public static final String FIELD_ID = "id";
 	private String indexDirectoryPath;	
 	private IndexWriter indexWriter;
-	
-	public Indexer(String rootPath, String rootUrl) throws IOException {
-		this(rootPath, "default", rootUrl);
+	private static String indexStorageRootPath;
+	private static final String DEFAULT_USER = "user";
+	static {
+		File tmpDir = new File(System.getProperty("java.io.tmpdir"));
+		File tmpLuceneDir = new File(tmpDir, "lucene");
+		indexStorageRootPath = tmpLuceneDir.getAbsolutePath()+"/";
 	}
 	
-	public Indexer(String rootPath,String uid, String rootUrl) throws IOException {
-		indexDirectoryPath = rootPath + uid + "_" + rootUrl.replaceAll("\\:|\\.|\\?|\\/|\\&|\\~", "");
+	
+	public Indexer(String rootUrl) throws IOException {
+		this(DEFAULT_USER, rootUrl);
+	}
+	
+	public static String getDefaultIndexDirectoryPath(String rootUrl) {
+		return getIndexDirectoryPath(DEFAULT_USER, rootUrl);
+	}
+	
+	private static String getIndexDirectoryPath(String user, String rootUrl){
+		return indexStorageRootPath + user + "_" + rootUrl.replaceAll("\\:|\\.|\\?|\\/|\\&|\\~", "");
+	}
+	
+	
+	public Indexer(String user, String rootUrl) throws IOException {
+		indexDirectoryPath = getIndexDirectoryPath(user, rootUrl) ;
 		Directory indexDirectory = new SimpleFSDirectory(new File(indexDirectoryPath), new SimpleFSLockFactory());
 		
 		Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_47);
@@ -48,9 +65,6 @@ public class Indexer implements Observer{
 		
 	}
 	
-	public String getIndexDirectoryPath(){
-		return indexDirectoryPath;
-	}
 	
 	public void close() throws IOException{
 		if (indexWriter != null) indexWriter.close();
@@ -62,6 +76,7 @@ public class Indexer implements Observer{
 		if (page.getContentType()!=null &&
 			page.getContentType().equals("text/html")) {
 			String html = Jsoup.parse(page.getParseData().toString()).text();
+			System.out.println("\t[Test] html content= " + html);
 			Document document = new Document();
 			document.add(new StringField(FIELD_URL, url.getURL(), Field.Store.YES));
 			document.add(new TextField(FIELD_BODY, html, Field.Store.YES));

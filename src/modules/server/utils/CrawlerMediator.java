@@ -98,9 +98,7 @@ public class CrawlerMediator implements Runnable{
 	{
 		try
 		{
-			File tmpDir = new File(System.getProperty("java.io.tmpdir"));
-			File tmpLuceneDir = new File(tmpDir, "lucene");
-			Indexer indexer = new Indexer(tmpLuceneDir.getAbsolutePath(),url);
+			Indexer indexer = new Indexer(url);
 			for (Node node : siTree.nodeMap.values())
 			{
 				if(node.isValid) indexer.processPage(node.page);

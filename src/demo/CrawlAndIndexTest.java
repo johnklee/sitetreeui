@@ -46,7 +46,7 @@ public class CrawlAndIndexTest {
 			CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
 			controller.getConfig().setMaxDownloadSize(1000*CrawlConfig.MB);
 			controller.addSeed(rootUrl);
-			Indexer indexer = new Indexer(storageFolder,"testing",rootUrl);
+			Indexer indexer = new Indexer(rootUrl);
 			SiTree siTree = new SiTree();
 			controller.addObserver(indexer);
 			controller.addObserver(siTree);
@@ -68,17 +68,17 @@ public class CrawlAndIndexTest {
     		controller = null;
     		indexer.close();
     		
-    		String indexDirectoryPath = indexer.getIndexDirectoryPath();
-    		List <RelevantPage> searchResultList = null;
-    		String keyword = "providing";
-    		searchResultList = (new Searcher()).search(indexDirectoryPath, Indexer.FIELD_BODY, keyword);
-    		
-    		if (searchResultList != null) {
-    			for (RelevantPage searchResult : searchResultList) {
-    				System.out.println("<div >"+searchResult.getScore() + searchResult.getUrl() +"</div>");
-    			}
-    			
-    		}
+//    		String indexDirectoryPath = indexer.getIndexDirectoryPath();
+//    		List <RelevantPage> searchResultList = null;
+//    		String keyword = "providing";
+//    		searchResultList = (new Searcher()).search(indexDirectoryPath, Indexer.FIELD_BODY, keyword);
+//    		
+//    		if (searchResultList != null) {
+//    			for (RelevantPage searchResult : searchResultList) {
+//    				System.out.println("<div >"+searchResult.getScore() + searchResult.getUrl() +"</div>");
+//    			}
+//    			
+//    		}
     		
     		
     		
