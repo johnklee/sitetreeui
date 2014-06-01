@@ -5,6 +5,13 @@ public class AnalysisRule {
 	String description;
 	int score;
 	
+	public AnalysisRule(String r, String des, int score)
+	{
+		this.rule = r;
+		this.description = des;
+		this.score = score;
+	}
+	
 	public String getRule() {
 		return rule;
 	}

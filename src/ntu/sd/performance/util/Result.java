@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class Result {
 	private int id;
 	private int numOfRule;
-	private ArrayList<RuleResult> ruleResult;
+	private ArrayList<RuleResult> ruleResult = new ArrayList<RuleResult>();
 	
 	public Result (){
 		this.setId(-1);

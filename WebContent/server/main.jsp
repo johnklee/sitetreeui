@@ -34,8 +34,8 @@ Ext.onReady(function(){
 	         		      }
 	         			  else if(jsonStat.stat==-1)
 	         			  {
-	         				 alert("Error: "+jsonResp.desc);
-	         				 Ext.Msg.alert("Error", jsonResp.desc);
+	         				 alert("Error: "+jsonStat.desc);
+	         				 //Ext.Msg.alert("Error", jsonStat.desc);
 	         				 progressBar.hide();
 	         				 location.href = "/SiteTreeUI/server/main.jsp";
 	         		      }

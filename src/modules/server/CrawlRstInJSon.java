@@ -15,10 +15,13 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import modules.server.utils.CrawlerMediator;
+import modules.server.utils.beans.AnalysisRule;
 import modules.server.utils.beans.Link;
 import modules.server.utils.beans.RstJSon;
 import modules.server.utils.beans.URLNode;
 import net.sf.json.JSONObject;
+import ntu.sd.performance.util.Result;
+import ntu.sd.performance.util.RuleResult;
 import ntu.sd.utils.SiTree;
 import ntu.sd.utils.SiTree.Node;
 
@@ -54,10 +57,11 @@ public class CrawlRstInJSon extends HttpServlet {
 		if(cm!=null && cm.siTree!=null)
 		{
 			int id=0;	
-			SiTree siTree = cm.siTree;
+			SiTree siTree = cm.siTree;			
 			Map<String,Integer> idMap = new HashMap<String,Integer>();
 			for(Node n:siTree)
 			{
+				System.out.printf("\t[Test] %s...(%d)\n", n.url.getURL(), n.url.getDocid());
 				if(n.isValid) idMap.put(n.url.getURL(), id++);
 				else idMap.put(n.pageFetchResult.getOriginalURL(), id++);
 			}
@@ -83,6 +87,15 @@ public class CrawlRstInJSon extends HttpServlet {
 						//idMap.put(node.pageFetchResult.getOriginalURL(), id);
 					}					
 					urln.setId(idMap.get(urln.getUrl()));
+					Result aszRst = cm.aRstMap.get(urln.getUrl());
+					if(aszRst!=null)
+					{
+						
+						for(RuleResult rr:aszRst.getRuleResult())
+						{
+							urln.getAnalysis().add(new AnalysisRule(rr.getRuleName(), rr.getDescription(), rr.getScore()));
+						}
+					}
 					if(node.isValid)
 					{
 						String pageCnt=null;

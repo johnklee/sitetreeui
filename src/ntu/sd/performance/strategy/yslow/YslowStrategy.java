@@ -11,10 +11,7 @@ import ntu.sd.performance.strategy.AnalysisStrategy;
 public class YslowStrategy implements AnalysisStrategy {
 
 	@Override
-	public Result analyze(String URL) {
-		// TODO Auto-generated method stub
-		
-		
+	public Result analyze(String URL) {					
 		return yslow(URL);
 	}
 

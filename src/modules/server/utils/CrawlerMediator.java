@@ -1,9 +1,14 @@
 package modules.server.utils;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import ntu.sd.index.Indexer;
+import ntu.sd.performance.strategy.AnalysisStrategy;
+import ntu.sd.performance.strategy.yslow.FakeYslowStrategy;
+import ntu.sd.performance.util.Result;
 import ntu.sd.utils.SiTree;
 import ntu.sd.utils.SiTree.Node;
 import demo.MyCrawler;
@@ -15,12 +20,13 @@ import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 import flib.util.TimeStr;
 
 public class CrawlerMediator implements Runnable{	
-	public static int 		NumberOfCrawlers = 7;
-	public String 			url;
-	public int 				stat=1;/*1:Under Crawling, 2:Under Indexing, 3:Under eval, -1:Error, 0:Done*/
-	public String 			errMsg;
-	Random	 				rdm = new Random();
-	public SiTree 			siTree=null;
+	public static int 			NumberOfCrawlers = 7;
+	public String 				url;
+	public int 					stat=1;/*1:Under Crawling, 2:Under Indexing, 3:Under eval, -1:Error, 0:Done*/
+	public String 				errMsg;
+	Random	 					rdm = new Random();
+	public SiTree 				siTree=null;
+	public Map<String,Result>	aRstMap = new HashMap<String,Result>();
 	
 	public CrawlerMediator(String url){this.url = url;}
 	
@@ -91,24 +97,40 @@ public class CrawlerMediator implements Runnable{
 	{
 		try
 		{
-			Indexer indexer = new Indexer("C:/Users/user/temp/",url);
-			for (Node node : siTree.nodeMap.values()){
-				indexer.processPage(node.page);
+			File tmpDir = new File(System.getProperty("java.io.tmpdir"));
+			File tmpLuceneDir = new File(tmpDir, "lucene");
+			Indexer indexer = new Indexer(tmpLuceneDir.getAbsolutePath(),url);
+			for (Node node : siTree.nodeMap.values())
+			{
+				if(node.isValid) indexer.processPage(node.page);
 			}
 			indexer.close();
 			return true;
 		}
-		catch(Exception e){return false;}
+		catch(Exception e){
+			e.printStackTrace();
+			return false;
+		}
 	}
 	
 	public boolean perf()
 	{
 		try
 		{
-			Thread.sleep((int)(rdm.nextFloat()*2000));
+			AnalysisStrategy as = new FakeYslowStrategy();
+			for (Node node : siTree.nodeMap.values())
+			{
+				String url;
+				if(node.isValid) url = node.url.getURL();				
+				else url = node.pageFetchResult.getOriginalURL();
+				aRstMap.put(url, as.analyze(url));
+			}
 			return true;
 		}
-		catch(Exception e){return false;}
+		catch(Exception e){
+			e.printStackTrace();
+			return false;			
+		}
 	}
 
 	@Override
@@ -123,6 +145,6 @@ public class CrawlerMediator implements Runnable{
 		System.out.printf("\t[Test] Perfing...\n");
 		if(!perf()){stat=-1; errMsg="perf fail!"; return;}
 		stat=0;
-		siTree.close();
+		//siTree.close();
 	}
 }

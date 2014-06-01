@@ -27,6 +27,8 @@ public class PHThread extends Thread {
 		strategy=n_strategy;
 		ResList=n_ResList;
 	}
+	
+	@Override
 	public void run(){
 		Result r = strategy.analyze(URL);
 		r.setId(id);
@@ -43,11 +45,8 @@ public class PHThread extends Thread {
 		    //URL="http://www.yahoo.com/";
 		    Process child = Runtime.getRuntime().exec(command +URL);
 		    Result res;
-		    // Get output stream to write from it
 		    
-		         
-		    
-		    
+		    // Get output stream to write from it		    		         		    		    
 		    OutputStream out = child.getOutputStream();
 		    BufferedReader stdInput = new BufferedReader(new InputStreamReader(child.getInputStream()));
 		    String s  = stdInput.readLine();

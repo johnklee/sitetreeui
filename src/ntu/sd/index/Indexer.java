@@ -58,9 +58,9 @@ public class Indexer implements Observer{
 	
 	public void processPage (Page page) {
 		WebURL url = page.getWebURL();
-
-		
-		if (page.getContentType().equals("text/html")) {
+		System.out.printf("\t[Test] Content Type=%s...\n", page.getContentType());
+		if (page.getContentType()!=null &&
+			page.getContentType().equals("text/html")) {
 			String html = Jsoup.parse(page.getParseData().toString()).text();
 			Document document = new Document();
 			document.add(new StringField(FIELD_URL, url.getURL(), Field.Store.YES));
