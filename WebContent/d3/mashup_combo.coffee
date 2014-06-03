@@ -46,7 +46,7 @@ Ext.onReady ->
       # stores the key -> location values
       values = d3.map()
       # how much to separate each location by
-      increment = 20
+      increment = 0
       # how large to make the layout
       radius = 0
       # where the center of the layout should be
@@ -195,7 +195,7 @@ Ext.onReady ->
       # tooltip used to display details
       tooltip = Tooltip("vis-tooltip", 230)
       # charge used in artist layout
-      charge = (node) -> -Math.pow(node.radius, 2.0) / 2
+      #charge = (node) -> -Math.pow(node.radius, 2.0) / 2
 
       # Starting point for graph visualization
       # Initializes visualization and starts force layout
@@ -243,7 +243,7 @@ Ext.onReady ->
         #originally expect an array
         #currently just passing all in, maybe truncate?
         groupCenters = vispanel.radialPlacement().center({"x":width/2, "y":height / 2})
-            .radius(r).increment(inc).data(curNodesData)
+            .radius(r).data(curNodesData)
 
         # reset nodes in force layout
         force.nodes(curNodesData)
@@ -295,27 +295,29 @@ Ext.onReady ->
       
       # Public function to highlight node
       graph.highlight = (nodeid) ->
-        if previousHighlight != null && nodesMap.has(previousHighlight)
-          node = nodesMap.get(previousHighlight)
-          node.style("fill", (d) -> nodeColors(d.artist))
-              .style("stroke-width", 1.0)
-          node.searched = false;
-          previousHighlight = null;
-        else
-          if nodesMap.has(nodeid)
-            node = nodesMap.get(nodeid)
-            console.log(node)
-            node.style("fill", "#F38630")
-                .style("stroke-width", 10.0)
-                .style("stroke", "#555")
+        nodeid = (if typeof nodeid is "string" then nodeid else nodeid.toString())
+        ig.resetHighlight()
+        node.each (d) ->
+          if d.id == nodeid
+            n = d3.select(this)
+            n.style("fill", "red")
+             .style("stroke-width", 5.0)
+             .style("stroke", "#555")
             previousHighlight = nodeid
-            node.searched = true;
-        
-      graph.updateData = (newData) ->
-        allData = setupData(newData)
-        link.remove()
-        node.remove()
-        update()
+            d.searched = true;
+      
+      # Public function to reset highlight
+      graph.resetHighlight = () ->
+        if previousHighlight != null
+          node.each (d) ->
+            if d.id == previousHighlight
+              n = d3.select(this)
+              n.style("fill", (d) -> nodeColors(d.lvl))
+               .style("stroke", (d) -> strokeFor(d))
+               .style("stroke-width", 1.0)
+              d.searched = false;
+              previousHighlight = null;
+      
 
       # called once to clean up raw data and switch links to
       # point to node instances
@@ -359,7 +361,7 @@ Ext.onReady ->
           # radius ~ node circle's size
           n.radius = circleRadius(n.lvl)
           # calculate subgraph collapsible
-          n.collapsed = false;
+          n.searched = false;
           #n.subgraph = calcSubgraph(n.id)
 
         data
@@ -519,7 +521,7 @@ Ext.onReady ->
           .attr("cx", (d) -> d.x)
           .attr("cy", (d) -> d.y)
           .attr("r", (d) -> d.radius)
-          .style("fill", (d) -> nodeColors(d.id))
+          .style("fill", (d) -> nodeColors(d.lvl))
           .style("stroke", (d) -> strokeFor(d))
           .style("stroke-width", 1.0)
 
@@ -667,7 +669,7 @@ Ext.onReady ->
       # Helper function that returns stroke color for
       # particular node.
       strokeFor = (d) ->
-        d3.rgb(nodeColors(d.id)).darker().toString()
+        d3.rgb(nodeColors(d.lvl)).darker().toString()
 
       # Mouseover tooltip function
       showDetails = (d,i) ->
@@ -700,21 +702,25 @@ Ext.onReady ->
         
         # highlight neighboring nodes
         # watch out - don't mess with node if search is currently matching
-        node.style("stroke", (n) ->
-          if (n.searched or neighboring(d, n)) then "#555" else strokeFor(n))
-          .style("stroke-width", (n) ->
-            if (n.searched or neighboring(d, n)) then 2.0 else 1.0)
-      
+        tempd = d # node.each has to use 'd' as parameter...
+        node.each (d) ->
+          if (!d.searched and neighboring(tempd, d))
+            neighbor = d3.select(this)
+            neighbor.style("stroke", "#555")
+                    .style("stroke-width", 2.0)
         # highlight the node being moused over
-        d3.select(this).style("stroke","black")
-          .style("stroke-width", 2.0)
+        if !d.searched
+          d3.select(this).style("stroke","black").style("stroke-width", 2.0)
 
       # Mouseout function
       hideDetails = (d,i) ->
         tooltip.hideTooltip()
         # watch out - don't mess with node if search is currently matching
-        node.style("stroke", (n) -> if !n.searched then strokeFor(n) else "#555")
-          .style("stroke-width", (n) -> if !n.searched then 1.0 else 2.0)
+        node.each (d) ->
+          if !d.searched
+            neighbor = d3.select(this)
+            neighbor.style("stroke", strokeFor(d))
+                    .style("stroke-width", 1.0)
         if link
           link.attr("stroke", "#ddd")
             .attr("stroke-opacity", 0.8)
@@ -767,6 +773,7 @@ Ext.onReady ->
     ]
   )
   
-  jQuery("button").click -> ig.highlight(4)
+  jQuery(".-hl-button").click -> ig.highlight(4)
+  jQuery(".-resethl-button").click -> ig.resetHighlight()
   Ext.Msg.prompt "Welcome to SiTree!", "Enter URL:", initialize
   return

@@ -81,7 +81,7 @@ RadialPlacement = () ->
         temp_radius = radius
       else
         temp_radius = 1.55*temp_radius
-      console.log(temp_radius)
+      #console.log(temp_radius)
       circleKeys.forEach (k) -> place(k,temp_radius)
 
   getMaxDepth = (nodedata) ->
@@ -143,7 +143,7 @@ Network = () ->
   width = 960
   height = 600
   # radial base radius & base increment
-  r = 100
+  r = 120
   inc = 18
   # allData will store the unfiltered data
   allData = []
@@ -152,6 +152,7 @@ Network = () ->
   nodesMap = d3.map()
   linkByIndex = d3.map()
   invLinkByIndex = d3.map()
+  previousHighlight = null
   # these will hold the svg groups for
   # accessing the nodes and links display
   nodesG = null;
@@ -301,6 +302,22 @@ Network = () ->
           .style("stroke-width", 1.0)
   ###
   
+  # Public function to highlight node
+  network.highlight = (nodeid) ->
+    if previousHighlight != null && nodesMap.has(previousHighlight)
+      node = nodesMap.get(previousHighlight)
+      node.style("fill", (d) -> nodeColors(d.artist))
+          .style("stroke-width", 1.0)
+      node.searched = false;
+      previousHighlight = null;
+    if nodesMap.has(nodeid)
+      node = nodesMap.get(nodeid)
+      node.style("fill", "#F38630")
+          .style("stroke-width", 2.0)
+          .style("stroke", "#555")
+      previousHighlight = nodeid
+      node.searched = true;
+    
   network.updateData = (newData) ->
     allData = setupData(newData)
     link.remove()
@@ -313,11 +330,11 @@ Network = () ->
   setupData = (data) ->
     # initialize circle radius scale
     countExtent = d3.extent(data.nodes, (d) -> d.lvl)
-    circleRadius = d3.scale.sqrt().range([3, 12]).domain(countExtent)
+    circleRadius = d3.scale.sqrt().range([16,4]).domain(countExtent)
 
     # id's -> node objects
     nodesMap  = mapNodes(data.nodes)
-    # console.log(nodesMap)
+    #console.log(nodesMap)
 
     # switch links to point to node objects instead of id's
     data.links.forEach (l) ->
@@ -347,7 +364,7 @@ Network = () ->
       n.y = randomnumber=Math.floor(Math.random()*height)
       # add radius to the node so we can use it later
       # radius ~ node circle's size
-      n.radius = circleRadius(2)
+      n.radius = circleRadius(n.lvl)
       # calculate subgraph collapsible
       n.collapsed = false;
       #n.subgraph = calcSubgraph(n.id)
@@ -364,7 +381,15 @@ Network = () ->
 
   # Helper function to find node's subgraph
   # Returns an array of node id's
+  # Algorithm version 1, DROPPED
   calcSubgraph = (nodeid) ->
+    
+    # Helper function to check if two node share same parent
+    # parent must be either the collapse root or STRICTLY below its paths
+    checkShareParent = (a, b) ->
+      test = true;
+      return test
+    
     subgraph = []
     # check if indegree disqualifies this node
     if invLinkByIndex.has(nodeid)
@@ -373,6 +398,7 @@ Network = () ->
         test = test & checkShareParent(i,nodeid)
         if (test == false)
           # disqualified, discard any subgraph of this node
+          # BUG: what if other nodes connect to this node's subgraph?
           return []
     # node qualified, check its subgraph
     if linkByIndex.has(nodeid)
@@ -381,12 +407,25 @@ Network = () ->
           jQuery.union(subgraph,calcSubgraph(i))
     subgraph.push(nodeid) # lastly add itself
     subgraph
+    
   
-  # Helper function to check if two node share same parent
-  # parent must be either the collapse root or STRICTLY below its paths
-  checkShareParent = (a, b) ->
-    test = true;
-    return test
+  # Find nodes to include under nodeid in **current** graph
+  # Note: when expanding expand every node
+  #       some missing links must be expanded manually by other nodes
+  # Algorithm version 2, DROPPED
+  getCurrentSubgraph = (nodeid) ->
+    # Phase 1: get all nodes strictly under
+    dfs = getLinkRecursive(nodeid)
+    # Phase 2: remove nodes that are connected by nodes outside dfs
+    subgraph = dfs.slice(0)
+    for node in dfs
+      if invLinkByIndex.has(node)
+        for parent in invLinkByIndex.get(node)
+          if parent not in dfs
+            # linked by node outside dfs, remove
+            subgraph.splice( jQuery.inArray(parent,subgraph), 1 )
+            # BUG: now how to stop exploring this node's subgraph?
+  
   
   # Helper function that returns an associative array
   # with counts of unique attr in nodes
@@ -556,7 +595,7 @@ Network = () ->
         [a,b] = [node.x - curCenterX, node.y - curCenterY]
         layers.push(Math.sqrt(Math.pow(a,2) + Math.pow(b,2)))
         tally = node.lvl
-    console.log(layers)
+    #console.log(layers)
     layer = layersG.selectAll("circle")
       .data(layers)
     layer.enter().append("circle")
@@ -748,3 +787,4 @@ $ ->
   
   d3.json "data/sitehierarchy.json", (json) ->
     myNetwork("#vis", json)
+  
