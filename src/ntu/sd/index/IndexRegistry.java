@@ -174,11 +174,11 @@ public class IndexRegistry {
 	* @return converted string
 	*/
 	public String urltoDirPath(String rootUrl) {
-		return rootPath + File.separator + String.format("%040x", new BigInteger(1, rootUrl.getBytes()));
-		//indexDirectoryPath = rootPath + uid + "_" + rootUrl.replaceAll("\\:|\\.|\\?|\\/|\\&", "");
+		//return rootPath + File.separator + String.format("%040x", new BigInteger(1, rootUrl.getBytes()));
+		return rootPath + "user" + "_" + rootUrl.replaceAll("\\:|\\.|\\?|\\/|\\&", "");
 	}
 	
-	private boolean add(String source, boolean isForce) {
+	public boolean add(String source, boolean isForce) {
 		boolean notRecorded;
 		if (rootUrls == null) logger.error("registry not loaded!");
 		if (!rootUrls.contains(source)) {
