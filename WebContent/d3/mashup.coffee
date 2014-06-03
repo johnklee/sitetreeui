@@ -1,9 +1,11 @@
 Ext.onReady ->
-  
+
+
   # global 
   toolbar = undefined;
   vis = undefined;
   viewport = undefined;
+  rooturl = undefined;
   
   # functions 
   helloWorld = ->
@@ -14,6 +16,7 @@ Ext.onReady ->
     return
   initialize = (btn, text) ->
     if btn is "ok"
+      rooturl = text
       vis.urlinput text
       viewport.doLayout()
     return
@@ -93,24 +96,78 @@ Ext.onReady ->
   )
   # close drawMap
   # close My.D3panel
+ 
+
+  loadDataFromServer = (url , keyword) ->
+    oReq = new XMLHttpRequest()
+    oReq.onload = reqListener
+    oReq.open "get", "/SiteTreeUI/search?url=" + url + "&keyword=" + keyword , true
+    oReq.send()
+    return
+
+  reqListener = ->
+    console.log @responseText
+    Ext.Msg.alert "result", @responseText
+    rlt.label.update('New label');
   
+    return
+
+
+
+  searchButton = new Ext.Button(
+    text: "Search"
+    handler: ->
+      keyword = Ext.getCmp('msg').getValue()
+      Ext.Msg.alert "result", "input:" + keyword
+      loadDataFromServer(rooturl, keyword)
+      
+      return
+  )
+
+
+  searchPanel = new Ext.Panel(
+    region: "east"
+    title: "Search ＆ Result Panel"
+    width: 300
+    frame: true
+    layout:'table'
+    layoutConfig:
+      columns:2  
+    items: [
+      {
+        id:'msg'
+        xtype: "textfield"
+        hideLabel: false
+        flex: 2
+      }
+      searchButton
+      {
+          id:'rlt'
+          colspan:2
+          xtype: 'label',
+          forId: 'myFieldId',
+          text: 'Result should be here',
+          margins: '0 0 0 10'
+          
+      }
+    ]
+
+
+  )
+
   vis = new Myd3panel(
     title: 'in-page d3 demo'
     region : 'center'
     contentEl: 'customd3'
   )
-  panel = new Ext.Panel(
-  	title : 'commands & search panel'
-  	region : 'east'
-  	contentEl : 'cspanel'
-  	width : '20%'
-  )
+
+
   viewport = new Ext.Viewport(
     layout: 'border'
     autoshow: true;
     items: [
       vis
-      panel
+      searchPanel
     ]
   )
   Ext.Msg.prompt "Welcome to SiTree!", "Enter URL:", initialize
