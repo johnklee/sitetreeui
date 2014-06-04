@@ -143,7 +143,7 @@ public class CrawlRstInJSon extends HttpServlet {
 		}
 		JSONObject jsonObj = JSONObject.fromObject(rj);
 		System.out.printf("\t[Test] RespJSON:\n%s\n", jsonObj);
-		cacheMap.put(cm.siTree.root.url.getURL(), jsonObj.toString());
+		cacheMap.put(cm.url, jsonObj.toString());
 		out.write(jsonObj.toString());
 		out.flush();
 		cm.siTree.close();

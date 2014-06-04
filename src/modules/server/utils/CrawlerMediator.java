@@ -22,7 +22,7 @@ import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 import flib.util.TimeStr;
 
 public class CrawlerMediator implements Runnable{	
-	public static boolean		isInCache=false;
+	public boolean				isInCache=false;
 	public static int 			NumberOfCrawlers = 7;
 	public String 				url;
 	public int 					stat=1;/*1:Under Crawling, 2:Under Indexing, 3:Under eval, -1:Error, 0:Done*/
@@ -93,7 +93,15 @@ public class CrawlerMediator implements Runnable{
 	        //controller.getFrontier().close();
 	        Thread.sleep(500);
 	        System.out.printf("\t[Info] Delete tmp directory...\n");
-	        for(File f:tmpCMDir.listFiles()) f.delete();
+	        for(File f:tmpCMDir.listFiles()) 
+	        {
+	        	if(f.isFile()) f.delete();
+	        	else
+	        	{
+	        		for(File sf:f.listFiles()) sf.delete();
+	        		f.delete();
+	        	}
+	        }
 	        tmpCMDir.delete();
 			return true;
 		}
