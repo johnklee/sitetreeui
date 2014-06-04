@@ -37,7 +37,7 @@ Ext.onReady ->
       console.log url + " is expected to be sent to servlet"
       mask = Ext.Msg.wait("Loading...")
       ig = @Graph mask
-      d3.json "../coffeeDemo/data/sitehierarchy.json", (json) ->
+      d3.json "../coffeeDemo/data/sitehierarchy_test.json", (json) ->
         ig("#customd3", json)
       return
 
@@ -106,7 +106,7 @@ Ext.onReady ->
       
       getKeysAtDepth = (nodedata, depth) ->
         # nodesAtSameDepth is an array
-        nodesAtSameDepth = (node for node in nodedata when node.lvl is "#{depth}")
+        nodesAtSameDepth = (node for node in nodedata when node.lvl is depth)
         nodesAtSameDepth = (node.id for node in nodesAtSameDepth)
         nodesAtSameDepth
       
@@ -295,7 +295,7 @@ Ext.onReady ->
       
       # Public function to highlight node
       graph.highlight = (nodeid) ->
-        nodeid = (if typeof nodeid is "string" then nodeid else nodeid.toString())
+        #nodeid = (if typeof nodeid is "string" then nodeid else nodeid.toString())
         ig.resetHighlight()
         node.each (d) ->
           if d.id == nodeid
@@ -514,7 +514,7 @@ Ext.onReady ->
       # enter/exit display for nodes
       updateNodes = () ->
         node = nodesG.selectAll("circle.node")
-          .data(curNodesData, (d) -> d.id)
+          .data(curNodesData, (d) -> "#{d.id}")
 
         node.enter().append("circle")
           .attr("class", "node")

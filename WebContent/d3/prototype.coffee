@@ -7,6 +7,7 @@ Ext.onReady ->
   ig = undefined; # this holds the graph itself
   searchpanel = undefined;
   viewport = undefined;
+  polling = undefined; # polling clock function
   
   # functions 
   initialize = (btn, url) ->
@@ -20,7 +21,6 @@ Ext.onReady ->
         params:
             urls: url
       
-      viewport.doLayout()
     return
   
   
@@ -30,9 +30,9 @@ Ext.onReady ->
   
   
   pollstatus = (response) ->
-    jsonResp = Ext.util.JSON.decode(response.responseText)
+    jsonResp = Ext.util.JSON.decode(response.responseText)    
     if jsonResp.id.length > 0
-      task = Ext.TaskMgr.start(
+      polling =
         run: () ->
           Ext.Ajax.request
             url:'/SiteTreeUI/CrawlStatus'
@@ -41,9 +41,8 @@ Ext.onReady ->
             failure:failProgress
             params:
               id: jsonResp.id
-              
         interval: 1000
-      )
+      Ext.TaskMgr.start(polling)
     else
       alert("ID:"+jsonResp.id+", URL:"+jsonResp.url+", Desc:"+jsonResp.desc)
       progressMask.hide()
@@ -63,7 +62,9 @@ Ext.onReady ->
       # TODO: do sth?
     else 
       # processing done, d3 can get data
+      Ext.TaskMgr.stop(polling)
       vispanel.setup()
+      viewport.doLayout()
     
   
   failProgress = (response) ->
@@ -88,8 +89,8 @@ Ext.onReady ->
     
     setup: () ->
       progressMask.updateProgress(1,"Rendering...")
-      ig = @Graph
-      d3.json "../coffeeDemo/data/sitehierarchy.json", (error, json) ->
+      ig = @Graph()
+      d3.json "/SiteTreeUI/CrawlJSon", (error, json) ->
         if (error)
           progressMask.hide()
           alert("Error retrieving, abort!")
@@ -163,7 +164,7 @@ Ext.onReady ->
       
       getKeysAtDepth = (nodedata, depth) ->
         # nodesAtSameDepth is an array
-        nodesAtSameDepth = (node for node in nodedata when node.lvl is "#{depth}")
+        nodesAtSameDepth = (node for node in nodedata when node.lvl is depth)
         nodesAtSameDepth = (node.id for node in nodesAtSameDepth)
         nodesAtSameDepth
       
@@ -352,7 +353,7 @@ Ext.onReady ->
       
       # Public function to highlight node
       graph.highlight = (nodeid) ->
-        nodeid = (if typeof nodeid is "string" then nodeid else nodeid.toString())
+        #nodeid = (if typeof nodeid is "string" then nodeid else nodeid.toString())
         ig.resetHighlight()
         node.each (d) ->
           if d.id == nodeid
@@ -571,7 +572,7 @@ Ext.onReady ->
       # enter/exit display for nodes
       updateNodes = () ->
         node = nodesG.selectAll("circle.node")
-          .data(curNodesData, (d) -> d.id)
+          .data(curNodesData, (d) -> "#{d.id}")
 
         node.enter().append("circle")
           .attr("class", "node")
