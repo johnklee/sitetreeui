@@ -126,7 +126,7 @@ public class CrawlerMediator implements Runnable{
 	{
 		try
 		{
-			/*System.out.println("[Perf]Start!");
+			System.out.println("[Perf]Start!");
 			AnalysisStrategy as = new YslowStrategy();
 			PerformanceHandler ph = new PerformanceHandler();
 			ph.setStrategy(as);
@@ -157,11 +157,11 @@ public class CrawlerMediator implements Runnable{
 			System.out.println("[Perf]Done!");
 			
 			
-			return true;*/
+			return true;
 			
 			
 			
-			AnalysisStrategy as = new FakeYslowStrategy();
+			/*AnalysisStrategy as = new FakeYslowStrategy();
 			for (Node node : siTree.nodeMap.values())
 			{
 				String url;
@@ -172,7 +172,7 @@ public class CrawlerMediator implements Runnable{
 				else url = node.pageFetchResult.getOriginalURL();
 				
 			}
-			return true;
+			return true;*/
 			
 		}
 		catch(Exception e){
