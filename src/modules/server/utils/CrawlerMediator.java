@@ -117,7 +117,7 @@ public class CrawlerMediator implements Runnable{
 	{
 		try
 		{
-			
+			System.out.println("[Perf]Start!");
 			AnalysisStrategy as = new YslowStrategy();
 			PerformanceHandler ph = new PerformanceHandler();
 			ph.setStrategy(as);
@@ -144,7 +144,10 @@ public class CrawlerMediator implements Runnable{
 			{
 				aRstMap.put(rl.getId(),rl);
 			}
-	
+			
+			System.out.println("[Perf]Done!");
+			
+			
 			return true;
 			
 			
