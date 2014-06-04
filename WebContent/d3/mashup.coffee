@@ -6,6 +6,7 @@ Ext.onReady ->
   vis = undefined;
   viewport = undefined;
   rooturl = undefined;
+  searchdata = undefined;
   
   # functions 
   helloWorld = ->
@@ -108,7 +109,11 @@ Ext.onReady ->
   reqListener = ->
     console.log @responseText
     Ext.Msg.alert "result", @responseText
-    rlt.label.update('New label');
+    #searchPanel.update(@responseText)
+    searchdata = JSON.parse( @responseText )
+    #alert(searchdata.message)
+    Ext.getCmp('lb1').update("Message:" + searchdata.message )
+    Ext.getCmp('lb2').update("Error:" + searchdata.error)
   
     return
 
@@ -118,12 +123,12 @@ Ext.onReady ->
     text: "Search"
     handler: ->
       keyword = Ext.getCmp('msg').getValue()
-      Ext.Msg.alert "result", "input:" + keyword
+      #Ext.Msg.alert "result", "input:" + keyword
       loadDataFromServer(rooturl, keyword)
-      
       return
   )
 
+ 
 
   searchPanel = new Ext.Panel(
     region: "east"
@@ -136,24 +141,48 @@ Ext.onReady ->
     items: [
       {
         id:'msg'
+        fieldLabel: 'Name'
         xtype: "textfield"
         hideLabel: false
         flex: 2
       }
       searchButton
       {
-          id:'rlt'
+          id:'lb1'
           colspan:2
           xtype: 'label',
           forId: 'myFieldId',
-          text: 'Result should be here',
+          text: '',
           margins: '0 0 0 10'
-          
+          listeners:
+            render: (c) ->
+              c.getEl().on "click", (->
+                alert(searchdata.message)
+                return
+              ), c
       }
+      {
+          id:'lb2'
+          colspan:2
+          xtype: 'label',
+          forId: 'myFieldId',
+          text: '',
+          margins: '0 0 0 10'
+          listeners:
+            render: (c) ->
+              c.getEl().on "click", (->
+                alert(searchdata.error)
+                return
+              ), c 
+      }
+
+
     ]
-
-
+    
   )
+
+  
+
 
   vis = new Myd3panel(
     title: 'in-page d3 demo'
