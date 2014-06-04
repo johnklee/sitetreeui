@@ -68,6 +68,7 @@ public class PerformanceHandler implements Observer {
 
 	public void newAnalyze(int id,String URL) {
 		// TODO Auto-generated method stub
+					System.out.println("[Perf] Start " + URL);
 					PHThread thread=new PHThread(threadGroup,"group");
 					thread.setPHThread(id, URL, strategy, ResultList);
 					thread.start();

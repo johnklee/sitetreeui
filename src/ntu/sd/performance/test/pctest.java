@@ -48,7 +48,7 @@ public class pctest extends HttpServlet {
 		out.println("<title>Hello world</title>");
 		out.println("</head>");
 		out.println("<body>");
-		out.println(dir);
+		//out.println(dir);
 		out.println("Hello World from frisrt servlet");
 	
 		
