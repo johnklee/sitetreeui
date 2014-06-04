@@ -145,6 +145,12 @@ Ext.onReady ->
         xtype: "textfield"
         hideLabel: false
         flex: 2
+        listeners:
+          specialkey: (f, e) ->
+            if e.getKey() is e.ENTER
+              keyword = this.getValue()
+              loadDataFromServer(rooturl, keyword)
+            return
       }
       searchButton
       {
