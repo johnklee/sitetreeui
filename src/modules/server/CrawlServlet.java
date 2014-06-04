@@ -41,6 +41,8 @@ public class CrawlServlet extends HttpServlet {
 			System.out.printf("\t[Test] Crawling: %s\n", url);			
 			/*Task Process*/
 			CrawlerMediator cm = new CrawlerMediator(url);
+			Map<String,String> cacheMap = (Map<String,String>)session.getAttribute("cache");
+			if(cacheMap!=null && cacheMap.containsKey(url)) cm.isInCache=true;
 			new Thread(cm).start();
 			Map<String,CrawlerMediator> tkMap = (Map<String,CrawlerMediator>)session.getAttribute("TM");
 			if(tkMap==null)

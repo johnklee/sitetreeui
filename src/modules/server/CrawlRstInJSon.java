@@ -52,12 +52,32 @@ public class CrawlRstInJSon extends HttpServlet {
 		response.setContentType("application/x-json");  
 		Writer out = response.getWriter();
 		HttpSession session = request.getSession();
+		
+		Map<String,String> cacheMap = (Map<String,String>)session.getAttribute("cache");
 		CrawlerMediator cm = (CrawlerMediator)session.getAttribute("cm");
+		String cacheJson=null;
+		if(cacheMap==null)
+		{
+			cacheMap = new HashMap<String,String>();
+			session.setAttribute("cache", cacheMap);
+		}
+		else if((cacheJson=cacheMap.get(cm.url))!=null)
+		{
+			out.write(cacheJson);
+			out.flush();
+			return;
+		}
+		
+		
 		RstJSon rj = new RstJSon();		
 		if(cm!=null && cm.siTree!=null)
 		{
 			int id=0;	
-			SiTree siTree = cm.siTree;			
+			SiTree siTree = cm.siTree;
+			if(siTree==null)
+			{
+				System.out.printf("\t[Test] SiTree is null!\n");
+			}
 			Map<String,Integer> idMap = new HashMap<String,Integer>();
 			for(Node n:siTree)
 			{
@@ -123,8 +143,10 @@ public class CrawlRstInJSon extends HttpServlet {
 		}
 		JSONObject jsonObj = JSONObject.fromObject(rj);
 		System.out.printf("\t[Test] RespJSON:\n%s\n", jsonObj);
+		cacheMap.put(cm.siTree.root.url.getURL(), jsonObj.toString());
 		out.write(jsonObj.toString());
 		out.flush();
+		cm.siTree.close();
 	}
 
 	/**

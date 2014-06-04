@@ -22,6 +22,7 @@ import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 import flib.util.TimeStr;
 
 public class CrawlerMediator implements Runnable{	
+	public static boolean		isInCache=false;
 	public static int 			NumberOfCrawlers = 7;
 	public String 				url;
 	public int 					stat=1;/*1:Under Crawling, 2:Under Indexing, 3:Under eval, -1:Error, 0:Done*/
@@ -46,7 +47,9 @@ public class CrawlerMediator implements Runnable{
 	         * Be polite: Make sure that we don't send more than 1 request per
 	         * second (1000 milliseconds between requests).
 	         */
-	        config.setPolitenessDelay(1000);
+	        config.setPolitenessDelay(0);
+	        config.setConnectionTimeout(1000);
+	        config.setSocketTimeout(1000);
 	        
 	        /*
 	         * You can set the maximum number of pages to crawl. The default value
@@ -84,8 +87,14 @@ public class CrawlerMediator implements Runnable{
 	        controller.addObserver(siTree);       
 	        controller.start(MyCrawler.class, NumberOfCrawlers);
 	        System.out.printf("\t[Info] Done! %s\n", TimeStr.ToStringFrom(st));
-	        controller.deleteObserver(siTree);	
+	        controller.deleteObserver(siTree);
+	        System.out.printf("\t[Info] Shutdown Controller...\n");
 	        controller.shutdown();
+	        //controller.getFrontier().close();
+	        Thread.sleep(500);
+	        System.out.printf("\t[Info] Delete tmp directory...\n");
+	        for(File f:tmpCMDir.listFiles()) f.delete();
+	        tmpCMDir.delete();
 			return true;
 		}
 		catch(Exception e){
@@ -117,7 +126,7 @@ public class CrawlerMediator implements Runnable{
 	{
 		try
 		{
-			System.out.println("[Perf]Start!");
+			/*System.out.println("[Perf]Start!");
 			AnalysisStrategy as = new YslowStrategy();
 			PerformanceHandler ph = new PerformanceHandler();
 			ph.setStrategy(as);
@@ -148,20 +157,23 @@ public class CrawlerMediator implements Runnable{
 			System.out.println("[Perf]Done!");
 			
 			
-			return true;
+			return true;*/
 			
 			
-			/*
+			
 			AnalysisStrategy as = new FakeYslowStrategy();
 			for (Node node : siTree.nodeMap.values())
 			{
 				String url;
-				if(node.isValid) url = node.url.getURL();				
+				if(node.isValid) {
+					url = node.url.getURL();
+					aRstMap.put(node.url.getDocid(), as.analyze(url));
+				}
 				else url = node.pageFetchResult.getOriginalURL();
-				aRstMap.put(url, as.analyze(url));
+				
 			}
 			return true;
-			*/
+			
 		}
 		catch(Exception e){
 			e.printStackTrace();
@@ -171,16 +183,18 @@ public class CrawlerMediator implements Runnable{
 
 	@Override
 	public void run() {
-		stat=1;
-		System.out.printf("\t[Test] Crawling...\n");
-		if(!crawl()){stat=-1; errMsg="crawl fail!"; return;}
-		stat=2;
-		System.out.printf("\t[Test] Indexing...\n");
-		if(!index()){stat=-1; errMsg="index fail!"; return;}		
-		stat=3;
-		System.out.printf("\t[Test] Perfing...\n");
-		if(!perf()){stat=-1; errMsg="perf fail!"; return;}
-		stat=0;
-		//siTree.close();
+		if(!isInCache)
+		{
+			stat=1;
+			System.out.printf("\t[Test] Crawling...\n");
+			if(!crawl()){stat=-1; errMsg="crawl fail!"; return;}
+			stat=2;
+			System.out.printf("\t[Test] Indexing...\n");
+			if(!index()){stat=-1; errMsg="index fail!"; return;}		
+			stat=3;
+			System.out.printf("\t[Test] Perfing...\n");
+			if(!perf()){stat=-1; errMsg="perf fail!"; return;}
+		}
+		stat=0;		
 	}
 }
