@@ -37,10 +37,11 @@ public class CrawlServlet extends HttpServlet {
 		response.setContentType("application/x-json");  
 		Writer out = response.getWriter();
 		if(url.startsWith("http"))
-		{
-			System.out.printf("\t[Test] Crawling: %s\n", url);			
+		{					
 			/*Task Process*/
-			CrawlerMediator cm = new CrawlerMediator(url);
+			CrawlerMediator cm = new CrawlerMediator(url);			
+			cm.sessionNum = session.getId();
+			System.out.printf("\t[Test] Crawling: %s (ID=%s)\n", url, cm.sessionNum);
 			Map<String,String> cacheMap = (Map<String,String>)session.getAttribute("cache");
 			if(cacheMap!=null && cacheMap.containsKey(url)) cm.isInCache=true;
 			new Thread(cm).start();

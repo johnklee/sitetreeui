@@ -87,59 +87,62 @@ public class CrawlRstInJSon extends HttpServlet {
 			}
 			Queue<Node> pqueue = new LinkedList<Node>();
 			Queue<Node> nqueue = new LinkedList<Node>();
-			nqueue.add(siTree.root);
-			int level=0;
-			while(!nqueue.isEmpty())
+			if(cm.siTree.root!=null)
 			{
-				pqueue.addAll(nqueue);
-				nqueue.clear();
-				while(!pqueue.isEmpty())
+				nqueue.add(siTree.root);
+				int level=0;
+				while(!nqueue.isEmpty())
 				{
-					Node node = pqueue.poll();
-					URLNode urln = new URLNode();
-					urln.setLvl(level);
-					if(node.isValid) {
-						urln.setUrl(node.url.getURL());
-						//idMap.put(node.url.getURL(), id);
-					}
-					else {
-						urln.setUrl(node.pageFetchResult.getOriginalURL());	
-						//idMap.put(node.pageFetchResult.getOriginalURL(), id);
-					}					
-					urln.setId(idMap.get(urln.getUrl()));
-					Result aszRst = cm.aRstMap.get(urln.getUrl());
-					if(aszRst!=null)
+					pqueue.addAll(nqueue);
+					nqueue.clear();
+					while(!pqueue.isEmpty())
 					{
-						
-						for(RuleResult rr:aszRst.getRuleResult())
-						{
-							urln.getAnalysis().add(new AnalysisRule(rr.getRuleName(), rr.getDescription(), rr.getScore()));
+						Node node = pqueue.poll();
+						URLNode urln = new URLNode();
+						urln.setLvl(level);
+						if(node.isValid) {
+							urln.setUrl(node.url.getURL());
+							//idMap.put(node.url.getURL(), id);
 						}
-					}
-					if(node.isValid)
-					{
-						String pageCnt=null;
-						if(node.page.getContentEncoding()!=null) pageCnt = new String(node.page.getContentData(), node.page.getContentEncoding());
-						else pageCnt = new String(node.page.getContentData(), "UTF8");
-						Document doc = Jsoup.parse(pageCnt, "http://localhost/FF/");
-						Elements elms = doc.getElementsByTag("title");
-						if(elms.size()>0) urln.setTitle(elms.get(0).text());
+						else {
+							urln.setUrl(node.pageFetchResult.getOriginalURL());	
+							//idMap.put(node.pageFetchResult.getOriginalURL(), id);
+						}					
+						urln.setId(idMap.get(urln.getUrl()));
+						Result aszRst = cm.aRstMap.get(urln.getUrl());
+						if(aszRst!=null)
+						{
+							
+							for(RuleResult rr:aszRst.getRuleResult())
+							{
+								urln.getAnalysis().add(new AnalysisRule(rr.getRuleName(), rr.getDescription(), rr.getScore()));
+							}
+						}
+						if(node.isValid)
+						{
+							String pageCnt=null;
+							if(node.page.getContentEncoding()!=null) pageCnt = new String(node.page.getContentData(), node.page.getContentEncoding());
+							else pageCnt = new String(node.page.getContentData(), "UTF8");
+							Document doc = Jsoup.parse(pageCnt, "http://localhost/FF/");
+							Elements elms = doc.getElementsByTag("title");
+							if(elms.size()>0) urln.setTitle(elms.get(0).text());
+							else urln.setTitle("");
+						}
 						else urln.setTitle("");
+						rj.getNodes().add(urln);
+						for(Node c:node.childs.values())
+						{
+							int cid = -1;
+							if(c.isValid) cid = idMap.get(c.url.getURL());
+							else cid = idMap.get(c.pageFetchResult.getOriginalURL());
+							if(cid>0) rj.getLinks().add(new Link(urln.getId(), cid));
+							else System.err.printf("\t[Error] Illegal URL!\n");
+						}
+						nqueue.addAll(node.childs.values());					
 					}
-					else urln.setTitle("");
-					rj.getNodes().add(urln);
-					for(Node c:node.childs.values())
-					{
-						int cid = -1;
-						if(c.isValid) cid = idMap.get(c.url.getURL());
-						else cid = idMap.get(c.pageFetchResult.getOriginalURL());
-						if(cid>0) rj.getLinks().add(new Link(urln.getId(), cid));
-						else System.err.printf("\t[Error] Illegal URL!\n");
-					}
-					nqueue.addAll(node.childs.values());					
+					level++;
 				}
-				level++;
-			}
+			} // if(cm.siTree.root!=null)
 		}
 		JSONObject jsonObj = JSONObject.fromObject(rj);
 		System.out.printf("\t[Test] RespJSON:\n%s\n", jsonObj);

@@ -21,7 +21,8 @@ import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 import flib.util.TimeStr;
 
-public class CrawlerMediator implements Runnable{	
+public class CrawlerMediator implements Runnable{
+	public String 				sessionNum="null";
 	public boolean				isInCache=false;
 	public static int 			NumberOfCrawlers = 7;
 	public String 				url;
@@ -33,6 +34,21 @@ public class CrawlerMediator implements Runnable{
 	
 	public CrawlerMediator(String url){this.url = url;}
 	
+	public static boolean deleteDir(File dir) {
+		if (dir.isDirectory()) {
+			String[] children = dir.list();
+			for (int i = 0; i < children.length; i++) {
+				boolean success = deleteDir(new File(dir, children[i]));
+				if (!success) {
+					return false;
+				}
+			}
+			// The directory is now empty so delete it
+			return dir.delete();
+		}
+		return true;
+	}
+	
 	public boolean crawl(){
 		try
 		{
@@ -40,6 +56,8 @@ public class CrawlerMediator implements Runnable{
 			CrawlController.CheckOthersWait=CrawlController.CleanUpWait=CrawlController.DConfirmWait=1;
 			File tmpDir = new File(System.getProperty("java.io.tmpdir"));
 			File tmpCMDir = new File(tmpDir, "crawler4j");
+			tmpCMDir.mkdirs();
+			tmpCMDir = new File(tmpCMDir, sessionNum);
 			tmpCMDir.mkdirs();
 			CrawlConfig config = new CrawlConfig();
 			config.setCrawlStorageFolder(tmpCMDir.getAbsolutePath());
@@ -93,16 +111,7 @@ public class CrawlerMediator implements Runnable{
 	        //controller.getFrontier().close();
 	        Thread.sleep(500);
 	        System.out.printf("\t[Info] Delete tmp directory...\n");
-	        for(File f:tmpCMDir.listFiles()) 
-	        {
-	        	if(f.isFile()) f.delete();
-	        	else
-	        	{
-	        		for(File sf:f.listFiles()) sf.delete();
-	        		f.delete();
-	        	}
-	        }
-	        tmpCMDir.delete();
+	        deleteDir(tmpCMDir);
 			return true;
 		}
 		catch(Exception e){
