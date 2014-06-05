@@ -585,6 +585,7 @@ Ext.onReady ->
 
         node.on("mouseover", showDetails)
           .on("mouseout", hideDetails)
+          .on("mousemove", trackDetails)
 
         # when click node -> run onClick function
         node.on("click", onClick ) 
@@ -731,13 +732,13 @@ Ext.onReady ->
 
       # Mouseover tooltip function
       showDetails = (d,i) ->
-        content = '<p class="main">' + d.name + '</span></p>'
+        content = '<p class="main">' + d.title + '</span></p>'
         content += '<hr class="tooltip-hr">'
         content += '<p class="main">' + "level = " + d.lvl + '</span></p>'
         content += '<hr class="tooltip-hr">'
         content += '<p class="main">' + "Id = " + d.id + '</span></p>'
-        content += '<hr class="tooltip-hr">'  
-        content += '<p class="main">' + "cordination:" + '(' + d.x + ',' + d.y + ')' + '</span></p>'      
+        #content += '<hr class="tooltip-hr">'  
+        #content += '<p class="main">' + "cordination:" + '(' + d.x + ',' + d.y + ')' + '</span></p>'      
         tooltip.showTooltip(content,d3.event)
 
         # higlight connected links
@@ -785,6 +786,9 @@ Ext.onReady ->
             .attr("marker-end", "url(#end)")
 
 
+      trackDetails = (d,i) ->
+        tooltip.updatePosition(d3.event)
+      
       onClick = (d,i) ->
         if !(d.collapsed)
           # calculate subgraph and store in
