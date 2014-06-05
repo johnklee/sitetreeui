@@ -87,7 +87,7 @@ public class CrawlRstInJSon extends HttpServlet {
 			}
 			Queue<Node> pqueue = new LinkedList<Node>();
 			Queue<Node> nqueue = new LinkedList<Node>();
-			nqueue.add(siTree.root);
+			if(siTree.root!=null) nqueue.add(siTree.root);
 			int level=0;
 			while(!nqueue.isEmpty())
 			{

@@ -108,8 +108,14 @@ public class CrawlerMediator implements Runnable{
 	        controller.deleteObserver(siTree);
 	        System.out.printf("\t[Info] Shutdown Controller...\n");
 	        controller.shutdown();
-	        //controller.getFrontier().close();
 	        Thread.sleep(500);
+	        try
+	        {
+	        	controller.getFrontier().finish();
+		        controller.getFrontier().close();
+	        }
+	        catch(Exception e){}
+	        
 	        System.out.printf("\t[Info] Delete tmp directory...\n");
 	        deleteDir(tmpCMDir);
 			return true;
