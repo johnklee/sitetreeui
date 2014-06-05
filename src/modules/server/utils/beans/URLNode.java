@@ -8,6 +8,13 @@ public class URLNode {
 	String title;
 	int lvl;
 	String url;
+	public String getContentType() {
+		return contentType;
+	}
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+	}
+	String contentType;
 	List<AnalysisRule> analysis = new ArrayList<AnalysisRule>();
 	public int getId() {
 		return id;
