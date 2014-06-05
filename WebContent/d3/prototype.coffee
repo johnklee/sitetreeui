@@ -8,7 +8,15 @@ Ext.onReady ->
   searchpanel = undefined;
   viewport = undefined;
   polling = undefined; # polling clock function
+  
+  searchdata = undefined;
   rooturl = undefined; # remember user input url
+  arraystore = new Ext.data.ArrayStore(
+    autoDestroy: true
+    storeId: 'test'
+    idIndex: 0
+    fields: ['id','score','url']
+  )
   
   # functions 
   initialize = (btn, url) ->
@@ -355,7 +363,7 @@ Ext.onReady ->
       
       # Public function to highlight node
       graph.highlight = (nodeid) ->
-        #nodeid = (if typeof nodeid is "string" then nodeid else nodeid.toString())
+        nodeid = (if typeof nodeid is "string" then Number(nodeid) else nodeid)
         ig.resetHighlight()
         node.each (d) ->
           if d.id == nodeid
@@ -792,16 +800,14 @@ Ext.onReady ->
         tooltip.updatePosition(d3.event)
       
       onClick = (d,i) ->
-        if !(d.collapsed)
-          # calculate subgraph and store in
-          console.log("not collapsed")
+        window.open d.url, "_blank"
           
         
       onDoubleClick = (d,i) ->
         # base node.url load corresponding page
 
         # open new tab & load page 
-          window.open "http://stackoverflow.com", "_blank" 
+        #window.open "http://stackoverflow.com", "_blank" 
         # overide current page
           #window.location.replace("http://stackoverflow.com"); 
           
@@ -822,12 +828,106 @@ Ext.onReady ->
     region : 'center'
     contentEl: 'customd3'
   )
-  searchpanel = new Ext.Panel(
-  	title : 'commands & search panel'
-  	region : 'east'
-  	contentEl : 'cspanel'
-  	width : '20%'
+  
+  searchButton = new Ext.Button(
+    colspan: 1
+    text: "Search"
+    handler: ->
+      keyword = Ext.getCmp('msg').getValue()
+      #Ext.Msg.alert "result", "input:" + keyword
+      Ext.Ajax.request
+        url:"/SiteTreeUI/search"
+        method:"POST"
+        success: setupStore
+        failure: failSetup
+        params:
+          url: rooturl
+          keyword: keyword
+      return
   )
+
+  setupStore = (response) ->
+    #console.log(response.responseText)
+    searchdata = JSON.parse( response.responseText )
+    dataArray = []
+    for result in searchdata.result
+      tempArray = []
+      tempArray.push(result.id)
+      tempArray.push(result.score)
+      tempArray.push(result.url)
+      dataArray.push(tempArray)
+    arraystore.loadData(dataArray)
+    #console.log(arraystore.getById("4"))
+
+  failSetup = (response) ->
+    alert("failed at getting dummy")
+
+  colModel = new Ext.grid.ColumnModel([
+    {
+      id: "id"
+      header: "Node Id"
+      width: 160
+      dataIndex: "id"
+    }
+    {
+      header: "Score"
+      width: 75
+      sortable: true
+      dataIndex: "score"
+    }
+    {
+      header: "URL"
+      width: 75
+      dataIndex: "url"
+    }
+  ])    
+    
+    
+  searchpanel = new Ext.Panel(
+    region: "east"
+    title: "Search & Result Panel"
+    width: 300
+    frame: true
+    layout:'table'
+    layoutConfig:
+      columns:2
+    items: [
+      {
+        id:'msg'
+        columns:1
+        fieldLabel: 'Name'
+        xtype: "textfield"
+        hideLabel: false
+        flex: 2
+        listeners:
+          specialkey: (f, e) ->
+            if e.getKey() is e.ENTER
+              keyword = this.getValue()
+              loadDataFromServer(rooturl, keyword)
+            return
+      }
+      searchButton
+      {
+          id: 'gp'
+          colspan: 2
+          xtype: 'grid' 
+          ds: arraystore
+          cm: colModel
+          columnWidth: 0.6
+          sm: new Ext.grid.RowSelectionModel(
+            singleSelect: true
+            listeners:
+              rowselect: (sm, row, rec) ->
+                ig.highlight(rec.id)
+                return
+          )
+          height: 300
+          title: "Search Results"
+          border: true
+      }
+    ]
+  )
+  
   viewport = new Ext.Viewport(
     layout: 'border'
     autoshow: true;
@@ -837,7 +937,7 @@ Ext.onReady ->
     ]
   )
   
-  jQuery(".-hl-button").click -> ig.highlight(4)
-  jQuery(".-resethl-button").click -> ig.resetHighlight()
+  #jQuery(".-hl-button").click -> ig.highlight(4)
+  #jQuery(".-resethl-button").click -> ig.resetHighlight()
   Ext.Msg.prompt "Welcome to SiTree!", "Enter URL:", initialize
   return

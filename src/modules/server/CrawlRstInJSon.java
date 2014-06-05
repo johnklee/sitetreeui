@@ -108,7 +108,14 @@ public class CrawlRstInJSon extends HttpServlet {
 						//idMap.put(node.pageFetchResult.getOriginalURL(), id);
 					}					
 					
-					urln.setId(idMap.get(urln.getUrl()));															
+					urln.setId(idMap.get(urln.getUrl()));
+					
+					if(node.isValid)
+						urln.setContentType(node.page.getContentType());
+					else
+						urln.setContentType("NA");
+					
+
 					Result aszRst = cm.aRstMap.get(urln.getUrl());
 					if(aszRst!=null)
 					{

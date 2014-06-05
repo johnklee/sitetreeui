@@ -74,6 +74,7 @@ public class KeywordSearchServletDummy extends HttpServlet {
 		ar.add(second);
 		ar.add(third);
 		
+		//jsonResult.put("total", 3);
 		jsonResult.put("results", ar);
 		writer.write(jsonResult.toJSONString());
 		return;
