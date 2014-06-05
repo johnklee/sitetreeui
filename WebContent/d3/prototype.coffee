@@ -8,10 +8,12 @@ Ext.onReady ->
   searchpanel = undefined;
   viewport = undefined;
   polling = undefined; # polling clock function
+  rooturl = undefined; # remember user input url
   
   # functions 
   initialize = (btn, url) ->
     if btn is "ok"
+      rooturl = url
       progressMask = Ext.Msg.progress("Processing...","Sending URL...")
       Ext.Ajax.request
         url:'/SiteTreeUI/Crawl'

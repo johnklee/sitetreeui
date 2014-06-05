@@ -12,15 +12,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import ntu.sd.index.Indexer;
 import ntu.sd.search.RelevantPage;
 import ntu.sd.search.Searcher;
 import ntu.sd.utils.SiTree;
-
 import unitest.TestCrawler;
-
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
 import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.fetcher.PageFetcher;
@@ -28,15 +27,15 @@ import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 
 
-@WebServlet("/search")
-public class KeywordSearchServlet extends HttpServlet {
+@WebServlet("/searchDummy")
+public class KeywordSearchServletDummy extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	
        
     /**
      * @see HttpServlet#HttpServlet()
      */
-    public KeywordSearchServlet() {
+    public KeywordSearchServletDummy() {
         super();
         // TODO Auto-generated constructor stub
     }
@@ -57,26 +56,29 @@ public class KeywordSearchServlet extends HttpServlet {
 			e2.printStackTrace();
 		}
 		
-		if (rootUrl == null || keyword == null){
-			jsonResult.put("error", true);
-			jsonResult.put("message", "root url or keyword null");
-			writer.write(jsonResult.toJSONString());
-			return;
-		}
+		JSONObject first = new JSONObject();
+		first.put("id", 4);
+		first.put("url", "http://blah.net");
+		first.put("score", 100);
+		JSONObject second = new JSONObject();
+		second.put("id", 3);
+		second.put("url", "http://kaboom.org");
+		second.put("score", 40);
+		JSONObject third = new JSONObject();
+		third.put("id", 0);
+		third.put("url", "http://home.com");
+		third.put("score", 10);
 		
-		Searcher searcher = new Searcher();
-		try {
-			List <RelevantPage> pages = searcher.search(Indexer.getDefaultIndexDirectoryPath(rootUrl), Indexer.FIELD_BODY, keyword);
-			jsonResult.put("result", pages);
-			response.getWriter().write(jsonResult.toJSONString());
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			jsonResult.put("error", true);
-			jsonResult.put("message", "root url wrong");
-			writer.write(jsonResult.toJSONString());
-			
-		}
+		JSONArray ar = new JSONArray();
+		ar.add(first);
+		ar.add(second);
+		ar.add(third);
+		
+		jsonResult.put("results", ar);
+		writer.write(jsonResult.toJSONString());
+		return;
+		
+		
 		
 	}
 
