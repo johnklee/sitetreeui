@@ -39,9 +39,8 @@ public class Searcher {
           
           Document document = searcher.doc(docId);
           
-          
           List <IndexableField> fieldList = document.getFields();
-          searchResultList.add(new RelevantPage(hits[i].score, fieldList));
+          searchResultList.add(RelevantPageFactory.create(hits[i].score, fieldList));
           
         }
         reader.close();

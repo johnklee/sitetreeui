@@ -11,17 +11,10 @@ public class RelevantPage {
 	private String url;
 	private String id;
 	private String score;
-	public RelevantPage(float score,List <IndexableField> documentFieldList){
-		this.score = String.valueOf(score);
-		for (IndexableField field : documentFieldList){
-			if (field.name().equals(Indexer.FIELD_URL)){
-				url = field.stringValue();
-			} else if (field.name().equals(Indexer.FIELD_ID)) {
-				id = field.stringValue();
-			} 
-		} 
+	public RelevantPage(){
 		
 	}
+	
 	public String getUrl() {
 		return url;
 	}
