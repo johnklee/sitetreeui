@@ -158,7 +158,7 @@ public class CrawlerMediator implements Runnable{
 				
 				String url;
 				int id;
-				if(node.isValid) {
+				if(node.isValid && node.page.getContentType()!= null && node.page.getContentType().compareTo("text/html") == 0 ) {
 					url = node.url.getURL();
 					id = node.url.getDocid();
 					ph.newAnalyze(id, url);
