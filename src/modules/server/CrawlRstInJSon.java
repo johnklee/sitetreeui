@@ -1,11 +1,16 @@
 package modules.server;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.zip.GZIPInputStream;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -25,6 +30,7 @@ import ntu.sd.performance.util.RuleResult;
 import ntu.sd.utils.SiTree;
 import ntu.sd.utils.SiTree.Node;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -128,13 +134,59 @@ public class CrawlRstInJSon extends HttpServlet {
 					if(node.isValid)
 					{
 						String pageCnt=null;
-						if(node.page.getContentEncoding()!=null) pageCnt = new String(node.page.getContentData(), node.page.getContentEncoding());
-						else pageCnt = new String(node.page.getContentData(), "UTF8");
-						Document doc = Jsoup.parse(pageCnt, "http://localhost/FF/");
-						Elements elms = doc.getElementsByTag("title");
-						if(elms.size()>0) urln.setTitle(elms.get(0).text());
-						else urln.setTitle("");
-					}
+						String cntType = node.page.getContentType();
+						System.out.printf("\t[Test] ContentType=%s:'%s'...\n", node.page.getContentType(), node.page.getWebURL().getURL());
+						if(cntType!=null && cntType.contains("text/html"))						
+						{							
+							pageCnt = new String(node.page.getContentData(), "UTF8");
+							Document doc = Jsoup.parse(pageCnt, "http://localhost/FF/");
+							Elements elms = doc.getElementsByTag("title");
+							if(elms.size()>0) urln.setTitle(elms.get(0).text());
+							else urln.setTitle("");
+						}
+						else {
+							urln.setTitle("");
+							pageCnt="";
+						}
+						
+						/*if(node.page.getContentEncoding()!=null) {
+							if(node.page.getContentEncoding().equalsIgnoreCase("gzip"))
+							{
+								try
+								{
+									System.out.printf("\t[Test] %s content (%d)...\n", node.page.getContentEncoding(), node.page.getContentData().length);
+									int MAX_CONTENT_LENT = 1024*1024*20;
+									int PAGE_BODY_BUFFER = 1024*10;
+									InputStream instream = new ByteArrayInputStream(node.page.getContentData()); 
+									instream = new GZIPInputStream(instream);
+									int rs=-1, ts=0;
+									byte bytes[] = new byte[PAGE_BODY_BUFFER];
+									List<Byte> byteList = new ArrayList<Byte>();
+									while((rs=instream.read(bytes))>0)
+									{
+										for(int i=0;i<rs;i++) byteList.add(bytes[i]);
+										ts+=rs;
+										if(ts>MAX_CONTENT_LENT) {					
+										    instream.close();
+											throw new IOException(String.format("Page Size=%d exceed Maximum Acceptable Size=%d!", ts, MAX_CONTENT_LENT));
+										}
+										//System.out.printf("\t[Test] Read %d...\n", rs);
+									}		    
+								    instream.close();		    
+									pageCnt =  new String(ArrayUtils.toPrimitive(byteList.toArray(new Byte[byteList.size()])), "UTF8");
+								}
+								catch(Exception e){
+									e.printStackTrace();
+									pageCnt="";
+								}
+							}
+							else pageCnt = new String(node.page.getContentData(), node.page.getContentEncoding());
+						}
+						else {
+							pageCnt = new String(node.page.getContentData(), "UTF8");
+						}*/
+						
+					} // if(node.isValid)
 					else urln.setTitle("");
 					rj.getNodes().add(urln);
 					for(Node c:node.childs.values())
