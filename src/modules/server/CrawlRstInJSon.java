@@ -55,7 +55,8 @@ public class CrawlRstInJSon extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		//Retrieve crawling result in JSON
-		response.setContentType("application/x-json");  
+		response.setContentType("application/x-json");
+		response.setCharacterEncoding("UTF-8");
 		Writer out = response.getWriter();
 		HttpSession session = request.getSession();
 		
@@ -122,7 +123,7 @@ public class CrawlRstInJSon extends HttpServlet {
 						urln.setContentType("NA");
 					
 
-					Result aszRst = cm.aRstMap.get(urln.getUrl());
+					Result aszRst = cm.aRstMap.get(idMap.get(urln.getUrl()));
 					if(aszRst!=null)
 					{
 						

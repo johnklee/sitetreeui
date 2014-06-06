@@ -3,13 +3,18 @@ Ext.onReady ->
   # global
   progressMask = undefined;
   pollingTask = undefined;
-  vispanel = undefined;
-  ig = undefined; # this holds the graph itself
-  searchPanel = undefined;
-  viewport = undefined;
   polling = undefined; # polling clock function
   
+  visPanel = undefined;
+  ig = undefined; # this holds the graph itself
+  colorLegend = undefined; # color tooltip
+  eastPanel = undefined;
+  searchPanel = undefined;
+  analysisPanel = undefined;
+  viewport = undefined;
+  
   rooturl = undefined; # remember user input url
+  colorLegendHTML = undefined; # store color legend for tooltip
   arraystore = new Ext.data.ArrayStore(
     autoDestroy: true
     storeId: 'resultStore'
@@ -72,7 +77,7 @@ Ext.onReady ->
     else 
       # processing done, d3 can get data
       Ext.TaskMgr.stop(polling)
-      vispanel.setup()
+      visPanel.setup()
       viewport.doLayout()
     
   
@@ -108,20 +113,10 @@ Ext.onReady ->
   failStoreSetup = (response) ->
     alert("failed at getting search results")
   
+  
   # The BIG function: d3.js graph 
   graphPanel = Ext.extend(Ext.Panel,
-    contructor: (config) ->
-      graphPanel.superclass.constructor.call this, config
-      return
-	
-    listeners:
-      afterrender: ->
-
-      
-    #raise event
-    loadConfig: ->
  
-    
     setup: () ->
       progressMask.updateProgress(1,"Rendering...")
       ig = @Graph()
@@ -248,9 +243,9 @@ Ext.onReady ->
       # in multiple places of Graph
       width = @superclass().getInnerWidth.call this
       height = @superclass().getInnerHeight.call this
-      # radial base radius & base increment
+      # radial base radius
       r = 120
-      inc = 18
+      previousHighlight = null;
       # allData will store the unfiltered data
       allData = []
       curLinksData = []
@@ -258,15 +253,14 @@ Ext.onReady ->
       nodesMap = d3.map()
       linkByIndex = d3.map()
       invLinkByIndex = d3.map()
-      previousHighlight = null;
-      # these will hold the svg groups for
+      # these will hold the SVG groups for
       # accessing the nodes and links display
       nodesG = null;
       linksG = null;
       layersG = null;
       markersG = null;
-      # these will point to the circles and lines
-      # of the nodes and links
+      # these will point to the d3 SVG elements
+      # of nodes links and circles
       node = null;
       link = null;
       layer = null;
@@ -274,8 +268,6 @@ Ext.onReady ->
       # variables to reflect the current settings
       # of the visualization
       layout = "radial"
-      #filter = "all"
-      #sort = "songs"
       # groupCenters will store our radial layout for
       # the group by artist layout.
       groupCenters = null;
@@ -294,14 +286,14 @@ Ext.onReady ->
       graph = (selection, data) ->
         # format our data
         allData = setupData(data)
-        
-        # TESTING: add stuff into right panel
-        # jQuery('#result').append(JSON.stringify(data))
 
         # create our svg and groups
+        if d3.select('#sitereeui_ig')
+          d3.select('#sitreeui_ig').remove() # Clean up
         vis = d3.select(selection).append("svg")
           .attr("width", width)
           .attr("height", height)
+          .attr("id", 'sitreeui_ig')
           .call(d3.behavior.zoom().scaleExtent([1, 8]).on("zoom", zoom))
         layersG = vis.append("g").attr("id", "layers")
         linksG = vis.append("g").attr("id", "links")
@@ -319,6 +311,62 @@ Ext.onReady ->
         # perform rendering and start force layout
         update()
 
+      
+      # called ONCE to clean up raw data and switch links to
+      # point to node instances
+      # Returns modified data
+      setupData = (data) ->
+        # initialize circle radius scale
+        countExtent = d3.extent(data.nodes, (d) -> d.lvl)
+        circleRadius = d3.scale.sqrt().range([16,4]).domain(countExtent)
+
+        # id's -> node objects
+        nodesMap  = mapNodes(data.nodes)
+        #console.log(nodesMap)
+
+        # switch links to point to node objects instead of id's
+        data.links.forEach (l) ->
+          l.source = nodesMap.get(l.source)
+          l.target = nodesMap.get(l.target)
+          
+          # linkByIndex is used for link sorting
+          if linkByIndex.has(l.source.id)
+            temp = linkByIndex.get(l.source.id)
+            temp.push(l.target.id) # this returns NOT the array itself!
+            linkByIndex.set(l.source.id, temp)
+          else
+            linkByIndex.set(l.source.id, [l.target.id])
+            
+          # invLinkByIndex is used to find indegree
+          if invLinkByIndex.has(l.target.id)
+            temp = invLinkByIndex.get(l.target.id)
+            temp.push(l.source.id) # this returns NOT the array itself!
+            invLinkByIndex.set(l.target.id, temp)
+          else
+            invLinkByIndex.set(l.target.id, [l.source.id])
+        
+        contentTypeColorMap = d3.map()
+        data.nodes.forEach (n) ->
+          # set initial x/y to values within the width/height
+          # of the visualization
+          n.x = randomnumber=Math.floor(Math.random()*width)
+          n.y = randomnumber=Math.floor(Math.random()*height)
+          # set radius to the node ~ node circle's size
+          n.radius = circleRadius(n.lvl)
+          # calculate subgraph collapsible
+          #n.subgraph = calcSubgraph(n.id)
+          # set searched toggle
+          n.searched = false;
+          # keep track of all contentTypes
+          if !contentTypeColorMap.has(n.contentType)
+            contentTypeColorMap.set(n.contentType, nodeColors(n.contentType))
+        
+        colorLegendHTML = convertLegendtoHTML(contentTypeColorMap)
+        #console.log(colorLegendHTML)
+          
+        data
+      
+   
       # The update() function performs the bulk of the
       # work to setup our visualization based on the
       # current layout/sort/filter.
@@ -334,7 +382,7 @@ Ext.onReady ->
 
         #originally expect an array
         #currently just passing all in, maybe truncate?
-        groupCenters = vispanel.radialPlacement().center({"x":width/2, "y":height / 2})
+        groupCenters = visPanel.radialPlacement().center({"x":width/2, "y":height / 2})
             .radius(r).data(curNodesData)
 
         # reset nodes in force layout
@@ -405,60 +453,13 @@ Ext.onReady ->
           node.each (d) ->
             if d.id == previousHighlight
               n = d3.select(this)
-              n.style("fill", (d) -> nodeColors(d.lvl))
+              n.style("fill", (d) -> nodeColors(d.contentType))
                .style("stroke", (d) -> strokeFor(d))
                .style("stroke-width", 1.0)
               d.searched = false;
               previousHighlight = null;
       
-
-      # called once to clean up raw data and switch links to
-      # point to node instances
-      # Returns modified data
-      setupData = (data) ->
-        # initialize circle radius scale
-        countExtent = d3.extent(data.nodes, (d) -> d.lvl)
-        circleRadius = d3.scale.sqrt().range([16,4]).domain(countExtent)
-
-        # id's -> node objects
-        nodesMap  = mapNodes(data.nodes)
-        #console.log(nodesMap)
-
-        # switch links to point to node objects instead of id's
-        data.links.forEach (l) ->
-          l.source = nodesMap.get(l.source)
-          l.target = nodesMap.get(l.target)
-          
-          # linkByIndex is used for link sorting
-          if linkByIndex.has(l.source.id)
-            temp = linkByIndex.get(l.source.id)
-            temp.push(l.target.id) # this returns NOT the array itself!
-            linkByIndex.set(l.source.id, temp)
-          else
-            linkByIndex.set(l.source.id, [l.target.id])
-            
-          # invLinkByIndex is used to find indegree
-          if invLinkByIndex.has(l.target.id)
-            temp = invLinkByIndex.get(l.target.id)
-            temp.push(l.source.id) # this returns NOT the array itself!
-            invLinkByIndex.set(l.target.id, temp)
-          else
-            invLinkByIndex.set(l.target.id, [l.source.id])
-          
-        data.nodes.forEach (n) ->
-          # set initial x/y to values within the width/height
-          # of the visualization
-          n.x = randomnumber=Math.floor(Math.random()*width)
-          n.y = randomnumber=Math.floor(Math.random()*height)
-          # add radius to the node so we can use it later
-          # radius ~ node circle's size
-          n.radius = circleRadius(n.lvl)
-          # calculate subgraph collapsible
-          n.searched = false;
-          #n.subgraph = calcSubgraph(n.id)
-
-        data
-
+      
       # Helper function to map node id's to node objects.
       # Returns d3.map of ids -> nodes
       mapNodes = (nodes) ->
@@ -467,6 +468,16 @@ Ext.onReady ->
           nodesMap.set(n.id, n)
         nodesMap
 
+      # Helper function that turns color map to html
+      # for colorLegend tooltip
+      convertLegendtoHTML = (map) ->
+        html = ''
+        map.forEach (k,v) ->
+          html += '<p>' + k + '</p>'
+          html += '<div class="clrlgnd" style="background-color:'
+          html += v + ';"> ^ </div>'
+        html
+        
       # Helper function to find node's subgraph
       # Returns an array of node id's
       # Algorithm version 1, DROPPED
@@ -604,6 +615,11 @@ Ext.onReady ->
           curNodes.get(l.source.id) and curNodes.get(l.target.id)
       ###
       
+      # Helper function that returns stroke color for
+      # particular node.
+      strokeFor = (d) ->
+        d3.rgb(nodeColors(d.contentType)).darker().toString()
+
       # enter/exit display for nodes
       updateNodes = () ->
         node = nodesG.selectAll("circle.node")
@@ -614,25 +630,20 @@ Ext.onReady ->
           .attr("cx", (d) -> d.x)
           .attr("cy", (d) -> d.y)
           .attr("r", (d) -> d.radius)
-          .style("fill", (d) -> nodeColors(d.lvl))
+          .style("fill", (d) -> nodeColors(d.contentType))
           .style("stroke", (d) -> strokeFor(d))
           .style("stroke-width", 1.0)
 
         node.on("mouseover", showDetails)
           .on("mouseout", hideDetails)
           .on("mousemove", trackDetails)
-
-        # when click node -> run onClick function
-        node.on("click", onClick ) 
-
-        node.on("dblclick", onDoubleClick ) 
-
+          .on("click", onClick )
+          .on("dblclick", onDoubleClick ) 
 
         node.exit().remove()
 
       # enter/exit display for links
       updateLinks = () ->
-      
         markersG.selectAll("marker").data(["end"])
           .enter().append("marker")    
             .attr("id", String)
@@ -690,9 +701,9 @@ Ext.onReady ->
         layer.enter().append("circle")
           .attr("fill","none")
           .attr("fill-opacity",0.0)
-          .attr("stroke","gray")
+          .attr("stroke","lightgray")
           .attr("stroke-width","1px")
-          .attr("stroke-dasharray","10,10")
+          .attr("stroke-dasharray","5,5")
           .attr("cx",width/2)
           .attr("cy",height/2)
           .attr("r",(d) -> d)
@@ -759,21 +770,21 @@ Ext.onReady ->
           d.x += (centerNode.x - d.x) * k
           d.y += (centerNode.y - d.y) * k
 
-
-      # Helper function that returns stroke color for
-      # particular node.
-      strokeFor = (d) ->
-        d3.rgb(nodeColors(d.lvl)).darker().toString()
-
       # Mouseover tooltip function
       showDetails = (d,i) ->
-        content = '<p class="main">' + d.title + '</span></p>'
+        content = '<p class="main"><i>' + d.contentType + '</i><br>'
+        content += d.title + '</p>'
         content += '<hr class="tooltip-hr">'
-        content += '<p class="main">' + "level = " + d.lvl + '</span></p>'
+        content += '<p class="main">' + "level = " + d.lvl + '</p>'
         content += '<hr class="tooltip-hr">'
-        content += '<p class="main">' + "Id = " + d.id + '</span></p>'
+        content += '<p class="main">' + "Id = " + d.id + '</p>'
         #content += '<hr class="tooltip-hr">'  
-        #content += '<p class="main">' + "cordination:" + '(' + d.x + ',' + d.y + ')' + '</span></p>'      
+        #content += '<p class="main">' + "cordination:" + '(' + d.x + ',' + d.y + ')' + '</span></p>'
+        if d.analysis
+          for test in d.analysis
+            console.log(test)
+        
+        
         tooltip.showTooltip(content,d3.event)
 
         # higlight connected links
@@ -848,19 +859,63 @@ Ext.onReady ->
   )
   # close My.D3panel
   
-  vispanel = new graphPanel(
+  # Custom tooltip that activates only on click
+  clickTooltip = Ext.extend(Ext.ToolTip,
+    initTarget: (target) ->
+      t = undefined
+      if t = Ext.get(target)
+        if @target
+          tg = Ext.get(@target)
+          @mun tg, "click", @onTargetOver, this
+          
+          #this.mun(tg, 'mouseover', this.onTargetOver, this);
+          @mun tg, "mouseout", @onTargetOut, this
+          @mun tg, "mousemove", @onMouseMove, this
+        @mon t,
+          
+          #mouseover: this.onTargetOver,
+          click: @onTargetOver
+          mouseout: @onTargetOut
+          mousemove: @onMouseMove
+          scope: this
+
+        @target = t
+      @anchorTarget = @target  if @anchor
+      return
+      
+  )
+  
+  visPanel = new graphPanel(
     title: 'SiTree Interactive Graph'
     region : 'center'
     contentEl: 'customd3'
-    bbar: [
-      { xtype: "tbfill" }
+    tbar: [
       {
         xtype: "button"
         text: "Change URL"
         handler: ->
           Ext.Msg.prompt "Welcome to SiTree!", "Enter URL:", initialize
       }
+      { xtype: "tbfill" }
+      {
+        xtype: "button"
+        id: "disp_legend"
+        text: "Display legend"
+        handler: ->
+          colorLegend.show()
+          colorLegend.update(colorLegendHTML)
+          # update() can be called only after tooltip has rendered
+      }
     ]
+  )
+  
+  colorLegend = new clickTooltip(
+    target: 'disp_legend'
+    anchor: 'right'
+    autoHide: false
+    autoWidth: true
+    closable: true
+    html: null
   )
 
   colModel = new Ext.grid.ColumnModel([
@@ -882,16 +937,16 @@ Ext.onReady ->
       dataIndex: "url"
     }
   ])    
-     
+  
   searchPanel = new Ext.grid.GridPanel(
-    region: "east"
+    #region: "east"
     title: "Search & Result Panel"
-    width: '20%'
+    width: '100%'
+    flex: 1
     frame: true
-    autoHeight: true
+    #autoHeight: true
     ds: arraystore
     cm: colModel
-    #columnWidth: 0.6
     sm: new Ext.grid.RowSelectionModel(
       singleSelect: true
       listeners:
@@ -933,12 +988,30 @@ Ext.onReady ->
     ]
   )
   
+  analysisPanel = new Ext.Panel(
+    title: "placeholder"
+    width: '100%'
+    flex: 1
+  )
+  
+  eastPanel = new Ext.Panel(
+    width: '20%'
+    height: '100%'
+    layout: 'vbox'
+    region: 'east'
+    frame: true
+    items: [
+      searchPanel
+      analysisPanel
+    ]
+  )
+
   viewport = new Ext.Viewport(
     layout: 'border'
     autoshow: true;
     items: [
-      vispanel
-      searchPanel
+      visPanel
+      eastPanel
     ]
   )
   
