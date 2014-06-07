@@ -123,7 +123,7 @@ public class CrawlRstInJSon extends HttpServlet {
 						urln.setContentType("NA");
 					
 
-					Result aszRst = cm.aRstMap.get(idMap.get(urln.getUrl()));
+					Result aszRst = cm.aRstMap.get(urln.getUrl());
 					if(aszRst!=null)
 					{
 						

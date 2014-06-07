@@ -3,6 +3,7 @@ package ntu.sd.performance.util;
 import java.util.ArrayList;
 
 public class Result {
+	private String URL;
 	private int id;
 	private int numOfRule;
 	private ArrayList<RuleResult> ruleResult = new ArrayList<RuleResult>();
@@ -11,6 +12,7 @@ public class Result {
 		this.setId(-1);
 		this.setNumOfRule(-1);
 		this.setRuleResult(null);
+		this.setURL("");
 	}
 	public Result(int n_id,int n_num,ArrayList<RuleResult> Rl ){
 		this.setId(n_id);
@@ -34,5 +36,11 @@ public class Result {
 	}
 	public void setId(int id) {
 		this.id = id;
+	}
+	public String getURL() {
+		return URL;
+	}
+	public void setURL(String uRL) {
+		URL = uRL;
 	}
 }

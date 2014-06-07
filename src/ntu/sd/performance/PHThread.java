@@ -32,6 +32,7 @@ public class PHThread extends Thread {
 	public void run(){
 		Result r = strategy.analyze(URL);
 		r.setId(id);
+		r.setURL(URL);
 		ResList.add(r);
 	}
 	

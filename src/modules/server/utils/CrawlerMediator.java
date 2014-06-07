@@ -30,7 +30,7 @@ public class CrawlerMediator implements Runnable{
 	public String 				errMsg;
 	Random	 					rdm = new Random();
 	public SiTree 				siTree=null;
-	public Map<Integer,Result>	aRstMap = new HashMap<Integer,Result>();
+	public Map<String,Result>	aRstMap = new HashMap<String,Result>();
 	
 	public CrawlerMediator(String url){this.url = url;}
 	
@@ -174,7 +174,7 @@ public class CrawlerMediator implements Runnable{
 			
 			for (Result rl:ph.getResultList())
 			{
-				aRstMap.put(rl.getId(),rl);
+				aRstMap.put(rl.getURL(),rl);
 			}
 			
 			System.out.println("[Perf]Done!");
