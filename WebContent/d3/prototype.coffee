@@ -15,12 +15,34 @@ Ext.onReady ->
   
   rooturl = undefined; # remember user input url
   colorLegendHTML = undefined; # store color legend for tooltip
-  arraystore = new Ext.data.ArrayStore(
+  resultStore = new Ext.data.JsonStore(
+  
+    # store configs
     autoDestroy: true
-    storeId: 'resultStore'
-    idIndex: 0
-    fields: ['id','score','url']
+    storeId: "resultStore"
+    
+    # reader configs
+    root: "result"
+    idProperty: "id"
+    fields: [
+      { name: "Id", mapping: "id" }
+      { name: "Score", mapping: "score" }
+      { name: "URL", mapping: "url" }
+    ]
+    
   )
+  analysisStore = new Ext.data.JsonStore(
+    autoDestroy: true
+    storeId: "analysisStore"
+    root: "analysis"
+    idProperty: "rule"
+    fields: [
+      { name: "Rule", mapping: "rule" }
+      { name: "Score", mapping: "score" }
+      { name: "Description", mapping: "description" }
+    ]
+  )
+  
   
   # functions 
   initialize = (btn, url) ->
@@ -91,26 +113,18 @@ Ext.onReady ->
       Ext.Ajax.request
         url:"/SiteTreeUI/search"
         method:"POST"
-        success: setupStore
-        failure: failStoreSetup
+        success: setupResultStore
+        failure: failResultStoreSetup
         params:
           url: rooturl
           keyword: keyword
   
-  setupStore = (response) ->
-    #console.log(response.responseText)
+  setupResultStore = (response) ->
     searchdata = JSON.parse( response.responseText )
-    dataArray = []
-    for result in searchdata.result
-      tempArray = []
-      tempArray.push(result.id)
-      tempArray.push(result.score)
-      tempArray.push(result.url)
-      dataArray.push(tempArray)
-    arraystore.loadData(dataArray)
-    #console.log(arraystore.getById("4"))
-
-  failStoreSetup = (response) ->
+    resultStore.loadData(searchdata)
+    #console.log(resultStore.getById(3))
+    
+  failResultStoreSetup = (response) ->
     alert("failed at getting search results")
   
   
@@ -779,11 +793,7 @@ Ext.onReady ->
         content += '<hr class="tooltip-hr">'
         content += '<p class="main">' + "Id = " + d.id + '</p>'
         #content += '<hr class="tooltip-hr">'  
-        #content += '<p class="main">' + "cordination:" + '(' + d.x + ',' + d.y + ')' + '</span></p>'
-        if d.analysis
-          for test in d.analysis
-            console.log(test)
-        
+        #content += '<p class="main">' + "cordination:" + '(' + d.x + ',' + d.y + ')' + '</span></p>'        
         
         tooltip.showTooltip(content,d3.event)
 
@@ -836,16 +846,10 @@ Ext.onReady ->
         tooltip.updatePosition(d3.event)
       
       onClick = (d,i) ->
-        window.open d.url, "_blank"
-          
+        analysisStore.loadData(d)
         
       onDoubleClick = (d,i) ->
-        # base node.url load corresponding page
-
-        # open new tab & load page 
-        #window.open "http://stackoverflow.com", "_blank" 
-        # overide current page
-          #window.location.replace("http://stackoverflow.com"); 
+        window.open d.url, "_blank"
           
       zoom = (d,i,e) ->
         node.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
@@ -916,37 +920,20 @@ Ext.onReady ->
     autoWidth: true
     closable: true
     html: null
-  )
-
-  colModel = new Ext.grid.ColumnModel([
-    {
-      id: "id"
-      header: "Node Id"
-      width: 50
-      dataIndex: "id"
-    }
-    {
-      header: "Score"
-      width: 100
-      sortable: true
-      dataIndex: "score"
-    }
-    {
-      header: "URL"
-      width: 150
-      dataIndex: "url"
-    }
-  ])    
+  )   
   
   searchPanel = new Ext.grid.GridPanel(
-    #region: "east"
     title: "Search & Result Panel"
     width: '100%'
     flex: 1
     frame: true
-    #autoHeight: true
-    ds: arraystore
-    cm: colModel
+    ds: resultStore
+    columns: [
+      { header: "Node Id", width: 50, dataIndex: "Id" }
+      # dataIndex corresponds to 'name' NOT 'mapping'
+      { header: "Score", width: 80, sortable: true, dataIndex: "Score" }
+      { header: "URL", width: 200, dataIndex: "URL" }
+    ]
     sm: new Ext.grid.RowSelectionModel(
       singleSelect: true
       listeners:
@@ -988,10 +975,17 @@ Ext.onReady ->
     ]
   )
   
-  analysisPanel = new Ext.Panel(
-    title: "placeholder"
+  analysisPanel = new Ext.grid.GridPanel(
+    title: "Analysis Scores"
     width: '100%'
     flex: 1
+    frame: true
+    ds: analysisStore
+    columns: [
+      { header: "Rule", dataIndex: "Rule", width: 80}
+      { header: "Score", dataIndex: "Score", width: 50}
+      { header: "Description", dataIndex: "Description", width: 300}
+    ]
   )
   
   eastPanel = new Ext.Panel(
