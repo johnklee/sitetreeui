@@ -1,13 +1,13 @@
-function Tooltip(tooltipId, width){
+function Tooltip(divClass, tooltipId, width){
   var tooltipId = tooltipId;
-  $("body").append("<div class='tooltip' id='"+tooltipId+"'></div>");
+  $("#"+divClass).append("<div class='tooltip' id='"+tooltipId+"'></div>");
 
   if(width){
     $("#"+tooltipId).css("width", width);
   }
 
   hideTooltip();
-
+  
   function showTooltip(content, event) {
     $("#"+tooltipId).html(content);
     $("#"+tooltipId).show();

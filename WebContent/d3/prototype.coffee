@@ -44,7 +44,11 @@ Ext.onReady ->
   )
   
   
-  # functions 
+  # functions
+  
+  showWelcome = () ->
+    Ext.Msg.prompt "Welcome to SiTree!", "Enter URL:", initialize
+  
   initialize = (btn, url) ->
     if btn is "ok"
       rooturl = url
@@ -82,7 +86,7 @@ Ext.onReady ->
     else
       alert("ID:"+jsonResp.id+", URL:"+jsonResp.url+", Desc:"+jsonResp.desc)
       progressMask.hide()
-      # TODO: do sth?
+      showWelcome()
     return
 
    
@@ -95,7 +99,7 @@ Ext.onReady ->
     else if jsonStat.stat == -1
       progressMask.hide()
       alert("Error: "+jsonStat.desc)
-      # TODO: do sth?
+      showWelcome()
     else 
       # processing done, d3 can get data
       Ext.TaskMgr.stop(polling)
@@ -107,7 +111,7 @@ Ext.onReady ->
     alert("Fail: "+resp.responseText)
     progressMask.hide()
     Ext.Msg.alert("Error", resp.responseText);
-    # TODO: do sth?
+    showWelcome()
   
   sendKeyword = (rooturl, keyword) ->
       Ext.Ajax.request
@@ -128,128 +132,121 @@ Ext.onReady ->
     alert("failed at getting search results")
   
   
+  # Abstract Layout class
+  # Returns placement for nodes
+  class Layout
+    values: d3.map()
+    dummy: 'test'
+    setKeys: (nodedata) ->
+    getPlacement: (key) ->
+    data: (input) ->
+      if !arguments.length
+        return d3.keys(values)
+      @setKeys(input)
+      return @
+  
+  # Concrete Layout: Radial
+  # Place nodes in rings
+  class radialLayout extends Layout
+    _center: {"x":0, "y":0}
+    _radius: 1
+    _start: -120
+    current: -120
+    increment: 0
+    type: 'radial'
+    
+    # Given an center point, angle, and radius length,
+    # return a radial position for that angle
+    radialLocation = (center, angle, radius) ->
+      x = (center.x + radius * Math.cos(angle * Math.PI / 180))
+      y = (center.y + radius * Math.sin(angle * Math.PI / 180))
+      {"x":x,"y":y}
+
+    # Main entry point for radialLayout
+    # Returns location for a particular key,
+    # creating a new location if necessary.
+    getPlacement: (key) ->
+      value = @values.get(key)
+      value
+
+    # Gets a new location for input key
+    place: (key, rad) ->
+      #console.log(@_center, @current, rad)
+      value = radialLocation(@_center, @current, rad)
+      @values.set(key,value)
+      #console.log(value)
+      @current += @increment
+      value
+    
+    setKeys: (nodedata) ->
+      temp_radius = 0
+      for d in [0..@getMaxDepth(nodedata)]
+        circleKeys = @getKeysAtDepth(nodedata,d)
+        @increment = 360 / circleKeys.length
+        @current = @_start
+        if d == 0
+          temp_radius = 0
+        else if d == 1
+          temp_radius = @_radius
+        else
+          temp_radius = 1.55*temp_radius
+        T = @
+        circleKeys.forEach (k) -> T.place(k, temp_radius)
+      #console.log(@values)
+
+    getMaxDepth: (nodedata) ->
+      max_depth = 1
+      for n in nodedata
+        if n.lvl > max_depth
+          max_depth = n.lvl
+      maxDepth = max_depth
+      maxDepth
+    
+    getKeysAtDepth: (nodedata, depth) ->
+      # nodesAtSameDepth is an array of id's
+      nodesAtSameDepth = (node for node in nodedata when node.lvl is depth)
+      nodesAtSameDepth = (node.id for node in nodesAtSameDepth)
+      nodesAtSameDepth
+    
+    center: (_) ->
+      if !arguments.length
+        return @_center
+      @_center = _
+      return @
+    radius: (_) ->
+      if !arguments.length
+        return @_radius
+      @_radius = _
+      return @
+    start: (_) ->
+      if !arguments.length
+        return @_start
+      @_start = _
+      return @
+ 
+  
+  
   # The BIG function: d3.js graph 
   graphPanel = Ext.extend(Ext.Panel,
- 
+    
     setup: () ->
       progressMask.updateProgress(1,"Rendering...")
+      if !d3.select('#sitreeui_ig').empty()
+        # Clean up
+        d3.select('#sitreeui_ig').remove()
+        jQuery('#tooltipHolder').empty()
+        ig = undefined;
+      
       ig = @Graph()
       d3.json "/SiteTreeUI/CrawlJSon", (error, json) ->
         if (error)
           progressMask.hide()
           alert("Error retrieving, abort!")
-          # TODO: do sth?
+          showWelcome()
         else
           ig("#customd3", json)
       return
 
-    # Help with the placement of nodes
-    radialPlacement: () ->
-      # stores the key -> location values
-      values = d3.map()
-      # how much to separate each location by
-      increment = 0
-      # how large to make the layout
-      radius = 0
-      # where the center of the layout should be
-      center = {"x":0, "y":0}
-      # what angle to start at
-      start = -120
-      current = start
-      maxDepth = 0
-
-      # Given an center point, angle, and radius length,
-      # return a radial position for that angle
-      radialLocation = (center, angle, radius) ->
-        x = (center.x + radius * Math.cos(angle * Math.PI / 180))
-        y = (center.y + radius * Math.sin(angle * Math.PI / 180))
-        {"x":x,"y":y}
-
-      # Main entry point for radialPlacement
-      # Returns location for a particular key,
-      # creating a new location if necessary.
-      placement = (key) ->
-        value = values.get(key)
-        if !values.has(key)
-          value = place(key)
-        value
-
-      # Gets a new location for input key
-      place = (key, rad) ->
-        value = radialLocation(center, current, rad)
-        values.set(key,value)
-        #console.log(value)
-        current += increment
-        value
-
-      # Given a set of keys, create multi-ringed radial layout.
-      # Expects radius, increment, and center to be set.
-      setKeysEx = (nodedata) ->
-        temp_radius = 0
-        for d in [0..getMaxDepth(nodedata)]
-          circleKeys = getKeysAtDepth(nodedata,d)
-          increment = 360 / circleKeys.length
-          if d == 0
-            temp_radius = 0
-          else if d == 1
-            temp_radius = radius
-          else
-            temp_radius = 1.55*temp_radius
-          #console.log(temp_radius)
-          circleKeys.forEach (k) -> place(k,temp_radius)
-
-      getMaxDepth = (nodedata) ->
-        max_depth = 1
-        for n in nodedata
-          if n.lvl > max_depth
-            max_depth = n.lvl
-        maxDepth = max_depth
-        maxDepth
-      
-      getKeysAtDepth = (nodedata, depth) ->
-        # nodesAtSameDepth is an array
-        nodesAtSameDepth = (node for node in nodedata when node.lvl is depth)
-        nodesAtSameDepth = (node.id for node in nodesAtSameDepth)
-        nodesAtSameDepth
-      
-      placement.keys = (_) ->
-        if !arguments.length
-          return d3.keys(values)
-        setKeys(_)
-        placement
-
-      placement.data = (_) ->
-        if !arguments.length
-          return d3.keys(values)
-        setKeysEx(_)
-        placement
-
-      placement.center = (_) ->
-        if !arguments.length
-          return center
-        center = _
-        placement
-
-      placement.radius = (_) ->
-        if !arguments.length
-          return radius
-        radius = _
-        placement
-
-      placement.start = (_) ->
-        if !arguments.length
-          return start
-        start = _
-        current = start
-        placement
-
-      placement.increment = (_) ->
-        if !arguments.length
-          return increment
-        increment = _
-        placement
-
-      return placement
     
     # Draw the graph!
     Graph: () ->
@@ -281,17 +278,17 @@ Ext.onReady ->
       #marker = null;
       # variables to reflect the current settings
       # of the visualization
-      layout = "radial"
+      layout = undefined;
       # groupCenters will store our radial layout for
       # the group by artist layout.
-      groupCenters = null;
+      #groupCenters = null;
 
       # our force directed layout
       force = d3.layout.force()
       # color function used to color nodes
       nodeColors = d3.scale.category20()
       # tooltip used to display details
-      tooltip = Tooltip("vis-tooltip", 230)
+      tooltip = Tooltip("tooltipHolder", "vis-tooltip", 230)
       # charge used in artist layout
       #charge = (node) -> -Math.pow(node.radius, 2.0) / 2
 
@@ -300,10 +297,8 @@ Ext.onReady ->
       graph = (selection, data) ->
         # format our data
         allData = setupData(data)
-
+        
         # create our svg and groups
-        if d3.select('#sitereeui_ig')
-          d3.select('#sitreeui_ig').remove() # Clean up
         vis = d3.select(selection).append("svg")
           .attr("width", width)
           .attr("height", height)
@@ -316,13 +311,10 @@ Ext.onReady ->
 
         # setup the size of the force environment
         force.size([width, height])
-
-        #setLayout("force")
-        #force.on("tick", radialTick).charge(charge)
+        # set default layout radial
+        setLayout( new radialLayout )
         #setFilter("all")
-        force.on("tick", radialTick)
-
-        # perform rendering and start force layout
+        # Perform rendering and start force layout
         update()
 
       
@@ -374,12 +366,17 @@ Ext.onReady ->
           # keep track of all contentTypes
           if !contentTypeColorMap.has(n.contentType)
             contentTypeColorMap.set(n.contentType, nodeColors(n.contentType))
-        
+          
         colorLegendHTML = convertLegendtoHTML(contentTypeColorMap)
         #console.log(colorLegendHTML)
           
         data
       
+      
+      # Switches force to new layout
+      setLayout = (newLayout) ->
+        layout = newLayout
+   
    
       # The update() function performs the bulk of the
       # work to setup our visualization based on the
@@ -391,33 +388,28 @@ Ext.onReady ->
         # filter data to show based on current filter settings.
         #curNodesData = filterNodes(allData.nodes)
         curNodesData = allData.nodes
+        #console.log(curNodesData)
         #curLinksData = filterLinks(allData.links, curNodesData)
         curLinksData = allData.links
-
-        #originally expect an array
-        #currently just passing all in, maybe truncate?
-        groupCenters = visPanel.radialPlacement().center({"x":width/2, "y":height / 2})
+        
+        # Set layout parameters
+        # TODO: uncouple this from d3.js?
+        if layout.type == "radial"
+          # curNodesData expects an array
+          # TODO: currently just passing all in, maybe truncate?
+          layout.center({"x":width/2, "y":height/2})
             .radius(r).data(curNodesData)
-
+          force.on("tick", tickFunc)
+        else
+          alert('Tick for this layout not implemented!')
+              
         # reset nodes in force layout
         force.nodes(curNodesData)
-
         # enter / exit for nodes
         updateNodes()
-
-        # always show links in force layout
-        if layout == "force"
-          force.links(curLinksData)
-          updateLinks()
-        else
-          # reset links so they do not interfere with
-          # other layouts. updateLinks() will be called when
-          # force is done animating.
-          force.links([])
-          # if present, remove them from svg 
-          if link
-            link.data([]).exit().remove()
-            link = null;
+        
+        # updateLinks() will be called when
+        # force is done animating
 
         # finally hide progress
         progressMask.hide()
@@ -492,6 +484,7 @@ Ext.onReady ->
           html += v + ';"> ^ </div>'
         html
         
+      
       # Helper function to find node's subgraph
       # Returns an array of node id's
       # Algorithm version 1, DROPPED
@@ -521,7 +514,6 @@ Ext.onReady ->
         subgraph.push(nodeid) # lastly add itself
         subgraph
         
-      
       # Find nodes to include under nodeid in **current** graph
       # Note: when expanding expand every node
       #       some missing links must be expanded manually by other nodes
@@ -615,7 +607,7 @@ Ext.onReady ->
       ###
       updateCenters = (artists) ->
         if layout == "radial"
-          groupCenters = radialPlacement().center({"x":width/2, "y":height / 2 - 100})
+          groupCenters = radialLayout().center({"x":width/2, "y":height / 2 - 100})
             .radius(300).increment(18).keys(artists)
       ###
       
@@ -638,7 +630,7 @@ Ext.onReady ->
       updateNodes = () ->
         node = nodesG.selectAll("circle.node")
           .data(curNodesData, (d) -> "#{d.id}")
-
+          
         node.enter().append("circle")
           .attr("class", "node")
           .attr("cx", (d) -> d.x)
@@ -721,19 +713,7 @@ Ext.onReady ->
           .attr("cx",width/2)
           .attr("cy",height/2)
           .attr("r",(d) -> d)
-      
-      # switches force to new layout parameters
-      ###
-      setLayout = (newLayout) ->
-        layout = newLayout
-        if layout == "force"
-          force.on("tick", forceTick)
-            .charge(-200)
-            .linkDistance(50)
-        else if layout == "radial"
-          force.on("tick", radialTick)
-            .charge(charge)
-      ###
+
       
       # switches filter option to new filter
       ###
@@ -762,8 +742,11 @@ Ext.onReady ->
       ###
       
       # tick function for radial layout
-      radialTick = (e) ->
-        node.each(moveToRadialLayout(e.alpha))
+      # TODO: drawCircles is a post-processing procedure
+      #       but it's creation is tightly integrated to d3.js
+      #       How to decouple and delegate?
+      tickFunc = (e) ->
+        node.each(moveToLayout(e.alpha))
 
         node
           .attr("cx", (d) -> d.x)
@@ -777,10 +760,10 @@ Ext.onReady ->
       # Adjusts x/y for each node to
       # push them towards appropriate location.
       # Uses alpha to dampen effect over time.
-      moveToRadialLayout = (alpha) ->
+      moveToLayout = (alpha) ->
         k = alpha * 0.1
         (d) ->
-          centerNode = groupCenters(d.id)
+          centerNode = layout.getPlacement(d.id)
           d.x += (centerNode.x - d.x) * k
           d.y += (centerNode.y - d.y) * k
 
@@ -1009,5 +992,5 @@ Ext.onReady ->
     ]
   )
   
-  Ext.Msg.prompt "Welcome to SiTree!", "Enter URL:", initialize
+  showWelcome()
   return
