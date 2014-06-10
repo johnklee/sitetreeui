@@ -972,7 +972,7 @@ Ext.onReady ->
   )
   
   eastPanel = new Ext.Panel(
-    width: '20%'
+    width: '30%'
     height: '100%'
     layout: 'vbox'
     region: 'east'

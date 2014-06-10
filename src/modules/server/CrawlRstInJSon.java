@@ -76,22 +76,27 @@ public class CrawlRstInJSon extends HttpServlet {
 		}
 		
 		
-		RstJSon rj = new RstJSon();		
+		RstJSon rj = new RstJSon();				
 		if(cm!=null && cm.siTree!=null)
-		{
-			int id=0;	
+		{			
 			SiTree siTree = cm.siTree;
+			int ii = siTree.nodeMap.size();
 			if(siTree==null)
 			{
 				System.out.printf("\t[Test] SiTree is null!\n");
 			}
 			Map<String,Integer> idMap = new HashMap<String,Integer>();
-			for(Node n:siTree)
+			for(Node n:siTree.nodeMap.values())
 			{
 				System.out.printf("\t[Test] %s...(%d)\n", n.url.getURL(), n.url.getDocid());
-				if(n.isValid) idMap.put(n.url.getURL(), id++);
-				else idMap.put(n.pageFetchResult.getOriginalURL(), id++);
+				idMap.put(n.url.getURL(), n.url.getDocid());
 			}
+			/*for(Node n:siTree)
+			{
+				System.out.printf("\t[Test] %s...(%d)\n", n.url.getURL(), n.url.getDocid());
+				if(n.isValid) idMap.put(n.url.getURL(), n.url.getDocid());
+				else idMap.put(n.pageFetchResult.getOriginalURL(), ii--);
+			}*/
 			Queue<Node> pqueue = new LinkedList<Node>();
 			Queue<Node> nqueue = new LinkedList<Node>();
 			if(siTree.root!=null) nqueue.add(siTree.root);
