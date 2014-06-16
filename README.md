@@ -13,18 +13,19 @@ Structure
 ---------
 
 WebContent
-|__ css
-|__ demos (This is for experiment and sandbox environment)
-	|___ coffeeDemo (experimenting with Coffeescript)
-	|___ d3 (stuff related to d3.js and mashup with extJS)
-		|___ mashup: extend extJS panel to hold d3.js SVG
-		|___ mashup_combo: do layout
-		|___ prototype: final prototype
-	|___ extjsDemo (stuff related to extJS)
-	|___ ...
-|___js
-|___sitetreeui (holds the release version coffeescript)
-|___index.html
+
+* css
+* demos (This is for experiment and sandbox environment)
+  * coffeeDemo (experimenting with Coffeescript)
+  * d3 (stuff related to d3.js and mashup with extJS)
+    * mashup: extend extJS panel to hold d3.js SVG
+    * mashup_combo: do layout
+    * prototype: final prototype
+  * extjsDemo (stuff related to extJS)
+  * ...
+* js
+* sitetreeui (holds the release version coffeescript)
+* index.html
 
 Usage
 -----
