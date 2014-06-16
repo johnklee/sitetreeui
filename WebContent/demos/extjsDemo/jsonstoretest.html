@@ -1,0 +1,89 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" type="text/css" href="../../js/ext-3.4.0/resources/css/ext-all.css" />
+<script type="text/javascript" src="../../js/ext-3.4.0/adapter/ext/ext-base.js"></script>
+<script type="text/javascript" src="../../js/ext-3.4.0/ext-all-debug.js"></script>
+<script type="text/javascript">  
+    Ext.onReady(function() {
+    		
+    	
+    		
+    	var store = new Ext.data.JsonStore({
+    	    // store configs
+    	    autoDestroy: true,
+    	    storeId: 'myStore',
+    	    // reader configs
+    	    root: 'nodes',
+    	    idProperty: 'id',
+    	    fields: [
+    	    	        // map Record's 'firstname' field to data object's key of same name
+    	    	        {name: 'contentType', mapping: 'contentType'},
+    	    	        // map Record's 'job' field to data object's 'occupation' key
+    	    	        {name: 'lvl', mapping: 'lvl'}
+    	    	    ]
+    	});
+    	
+    	var resultstore = new Ext.data.JsonStore({
+    	    // store configs
+    	    autoDestroy: true,
+    	    storeId: 'resultStore',
+    	    // reader configs
+    	    root: 'result',
+    	    idProperty: 'id',
+    	    fields: [
+    	    	      { name: "Id", mapping: "id" },
+				      { name: "Score", mapping: "score" },
+				      { name: "URL", mapping: "url" }
+    	    	    ]
+    	});
+    	
+    	/*
+    	var myReader = new Ext.data.JsonReader({
+    	    // metadata configuration options:
+    	    idProperty: 'id',
+    	    root: 'analysis',
+    	    totalProperty: 'totalCount',
+
+    	    // the fields config option will internally create an Ext.data.Record
+    	    // constructor that provides mapping for reading the record data objects
+    	    fields: [
+    	        // map Record's 'firstname' field to data object's key of same name
+    	        {name: 'name', mapping: 'firstname'},
+    	        // map Record's 'job' field to data object's 'occupation' key
+    	        {name: 'job', mapping: 'occupation'}
+    	    ]
+    	});
+    	*/
+
+    	var json =
+    	{
+    		'title' : 'blah blah',
+    	    'analysis': [
+    	        { id: 1, firstname: 'Bill', occupation: 'Gardener' },
+    	        { id: 2, firstname: 'Ben' , occupation: 'Horticulturalist' }
+    	    ]
+    	};
+    	
+    	var bigjson = 
+    	{"nodes":[{"analysis":[],"contentType":"text/html","id":0,"lvl":0,"title":"This is for testing","url":"http://140.112.31.76/FF/crawlme/"},{"analysis":[{"description":"Make fewer HTTP requests  ","rule":"ynumreq","score":100},{"description":"Use a CDN:There are 3 static components that are not on CDN. <p>You can specify CDN hostnames in your preferences. See <a href=\\\"http://yslow.org/faq/#faq_cdn\\\">YSlow FAQ<\/a> for details.<\/p>  \"img.my.csdn.net%3A%201%20component%2C%2020.8K\"","rule":"ycdn","score":70},{"description":"Avoid empty src or href  ","rule":"yemptysrc","score":100},{"description":"Add an Expires header:There are 3 static components without a far-future expiration date.  \"http%3A%2F%2F140.112.31.76%2FFF%2Fcss%2Ftest.css\",\"http%3A%2F%2F140.112.31.76%2FFF%2Fjs%2Ftest.js\",\"http%3A%2F%2F140.112.31.76%2Ffavicon.ico\"","rule":"yexpires","score":67},{"description":"Compress components:There is 1 plain text component that should be sent compressed  \"http%3A%2F%2F140.112.31.76%2FFF%2Fcrawlme%2F\"","rule":"ycompress","score":89},{"description":"Put CSS at top  ","rule":"ycsstop","score":100},{"description":"Put Javascript at the bottom  ","rule":"yjsbottom","score":100},{"description":"Avoid CSS expression  ","rule":"yexpressions","score":100},{"description":"Make JS and CSS external:Only consider this if your property is a common user home page.  \"There%20is%20a%20total%20of%201%20inline%20css\",\"There%20is%20a%20total%20of%201%20inline%20script\"","rule":"yexternal","score":-1},{"description":"Reduce DNS lookups  \"img.my.csdn.net%3A%201%20component%2C%2020.8K\"","rule":"ydns","score":100},{"description":"Minify JS and CSS:There is 1 component that can be minified  \"http%3A%2F%2F140.112.31.76%2FFF%2Fcss%2Ftest.css\"","rule":"yminify","score":90},{"description":"Avoid redirects  ","rule":"yredirects","score":100},{"description":"Remove duplicate JS and CSS  ","rule":"ydupes","score":100},{"description":"Configure ETags  ","rule":"yetags","score":100},{"description":"Make Ajax cacheable  ","rule":"yxhr","score":100},{"description":"Use GET for AJAX requests  ","rule":"yxhrmethod","score":100},{"description":"Reduce the Number of DOM elements  ","rule":"ymindom","score":100},{"description":"No 404s  ","rule":"yno404","score":100},{"description":"Reduce Cookie Size  ","rule":"ymincookie","score":100},{"description":"Use Cookie-free Domains  ","rule":"ycookiefree","score":100},{"description":"Avoid filters  ","rule":"ynofilter","score":100},{"description":"Don't Scale Images in HTML  ","rule":"yimgnoscale","score":100},{"description":"Make favicon Small and Cacheable:Favicon is more than 2000 bytes\\nFavicon is not cacheable  ","rule":"yfavicon","score":90}],"contentType":"NA","id":1,"lvl":1,"title":"","url":"http://140.112.31.76/FF/crawlme/notexist.html"},{"analysis":[],"contentType":"text/html","id":2,"lvl":1,"title":"Test page","url":"http://140.112.31.76/FF/crawlme/test.html"},{"analysis":[{"description":"Make fewer HTTP requests  ","rule":"ynumreq","score":100},{"description":"Use a CDN:<p>You can specify CDN hostnames in your preferences. See <a href=\\\"http://yslow.org/faq/#faq_cdn\\\">YSlow FAQ<\/a> for details.<\/p>  ","rule":"ycdn","score":100},{"description":"Avoid empty src or href  ","rule":"yemptysrc","score":100},{"description":"Add an Expires header:There is 1 static component without a far-future expiration date.  \"http%3A%2F%2F140.112.31.76%2Ffavicon.ico\"","rule":"yexpires","score":89},{"description":"Compress components  ","rule":"ycompress","score":100},{"description":"Put CSS at top  ","rule":"ycsstop","score":100},{"description":"Put Javascript at the bottom  ","rule":"yjsbottom","score":100},{"description":"Avoid CSS expression  ","rule":"yexpressions","score":100},{"description":"Make JS and CSS external:Only consider this if your property is a common user home page.  ","rule":"yexternal","score":-1},{"description":"Reduce DNS lookups  ","rule":"ydns","score":100},{"description":"Minify JS and CSS  ","rule":"yminify","score":100},{"description":"Avoid redirects  ","rule":"yredirects","score":100},{"description":"Remove duplicate JS and CSS  ","rule":"ydupes","score":100},{"description":"Configure ETags  ","rule":"yetags","score":100},{"description":"Make Ajax cacheable  ","rule":"yxhr","score":100},{"description":"Use GET for AJAX requests  ","rule":"yxhrmethod","score":100},{"description":"Reduce the Number of DOM elements  ","rule":"ymindom","score":100},{"description":"No 404s  ","rule":"yno404","score":100},{"description":"Reduce Cookie Size  ","rule":"ymincookie","score":100},{"description":"Use Cookie-free Domains  ","rule":"ycookiefree","score":100},{"description":"Avoid filters  ","rule":"ynofilter","score":100},{"description":"Don't Scale Images in HTML  ","rule":"yimgnoscale","score":100},{"description":"Make favicon Small and Cacheable:Favicon is more than 2000 bytes\\nFavicon is not cacheable  ","rule":"yfavicon","score":90}],"contentType":"text/css","id":3,"lvl":1,"title":"","url":"http://140.112.31.76/FF/css/test.css"},{"analysis":[],"contentType":"application/javascript","id":4,"lvl":1,"title":"","url":"http://140.112.31.76/FF/js/test.js"},{"analysis":[],"contentType":"image/gif","id":5,"lvl":1,"title":"","url":"http://img.my.csdn.net/uploads/201210/17/1350451073_1480.gif"},{"analysis":[],"contentType":"text/html","id":6,"lvl":2,"title":"test2.html","url":"http://140.112.31.76/FF/crawlme/test2.html"},{"analysis":[{"description":"Make fewer HTTP requests  ","rule":"ynumreq","score":100},{"description":"Use a CDN:<p>You can specify CDN hostnames in your preferences. See <a href=\\\"http://yslow.org/faq/#faq_cdn\\\">YSlow FAQ<\/a> for details.<\/p>  ","rule":"ycdn","score":100},{"description":"Avoid empty src or href  ","rule":"yemptysrc","score":100},{"description":"Add an Expires header:There is 1 static component without a far-future expiration date.  \"http%3A%2F%2F140.112.31.76%2Ffavicon.ico\"","rule":"yexpires","score":89},{"description":"Compress components  ","rule":"ycompress","score":100},{"description":"Put CSS at top  ","rule":"ycsstop","score":100},{"description":"Put Javascript at the bottom  ","rule":"yjsbottom","score":100},{"description":"Avoid CSS expression  ","rule":"yexpressions","score":100},{"description":"Make JS and CSS external:Only consider this if your property is a common user home page.  ","rule":"yexternal","score":-1},{"description":"Reduce DNS lookups  ","rule":"ydns","score":100},{"description":"Minify JS and CSS  ","rule":"yminify","score":100},{"description":"Avoid redirects  ","rule":"yredirects","score":100},{"description":"Remove duplicate JS and CSS  ","rule":"ydupes","score":100},{"description":"Configure ETags  ","rule":"yetags","score":100},{"description":"Make Ajax cacheable  ","rule":"yxhr","score":100},{"description":"Use GET for AJAX requests  ","rule":"yxhrmethod","score":100},{"description":"Reduce the Number of DOM elements  ","rule":"ymindom","score":100},{"description":"No 404s  ","rule":"yno404","score":100},{"description":"Reduce Cookie Size  ","rule":"ymincookie","score":100},{"description":"Use Cookie-free Domains  ","rule":"ycookiefree","score":100},{"description":"Avoid filters  ","rule":"ynofilter","score":100},{"description":"Don't Scale Images in HTML  ","rule":"yimgnoscale","score":100},{"description":"Make favicon Small and Cacheable:Favicon is more than 2000 bytes\\nFavicon is not cacheable  ","rule":"yfavicon","score":90}],"contentType":"text/html","id":7,"lvl":2,"title":"遠程數據源的組合框","url":"http://140.122.64.191/SchoolSrh/Demo/schoolSearch.html"},{"analysis":[{"description":"Make fewer HTTP requests:This page has 4 external Javascript scripts.  Try combining them into one.\\nThis page has 17 external background images.  Try combining them with CSS sprites.  ","rule":"ynumreq","score":63},{"description":"Use a CDN:There are 23 static components that are not on CDN. <p>You can specify CDN hostnames in your preferences. See <a href=\\\"http://yslow.org/faq/#faq_cdn\\\">YSlow FAQ<\/a> for details.<\/p>  \"maps.googleapis.com%3A%201%20component%2C%204.9K%20(4.9K%20GZip)\",\"maps.gstatic.com%3A%201%20component%2C%2051.0K%20(51.0K%20GZip)\"","rule":"ycdn","score":0},{"description":"Avoid empty src or href  ","rule":"yemptysrc","score":100},{"description":"Add an Expires header:There are 23 static components without a far-future expiration date.  \"http%3A%2F%2F140.122.64.191%2FSchoolSrh%2Fjs%2Fext-3.4.0%2Fresources%2Fcss%2Fext-all.css\",\"http%3A%2F%2F140.122.64.191%2FSchoolSrh%2Fjs%2Fext-3.4.0%2Fadapter%2Fext%2Fext-base.js\",\"http%3A%2F%2F140.122.64.191%2FSchoolSrh%2Fjs%2Fext-3.4.0%2Fext-all.js\",\"https%3A%2F%2Fmaps.googleapis.com%2Fmaps%2Fapi%2Fjs%3Fkey%3DAIzaSyA9PKczaIVarKfwTX3B-srJLzLNlvh2zOU%26sensor%3Dtrue\",\"http%3A%2F%2F140.122.64.191%2FSchoolSrh%2Fjs%2Fext-3.4.0%2Fresources%2Fimages%2Fdefault%2Fqtip%2Ftip-sprite.gif\",\"http%3A%2F%2F140.122.64.191%2FSchoolSrh%2Fjs%2Fext-3.4.0%2Fresources%2Fimages%2Fdefault%2Fqtip%2Ftip-anchor-sprite.gif\",\"http%3A%2F%2F140.122.64.191%2FSchoolSrh%2Fjs%2Fext-3.4.0%2Fresources%2Fimages%2Fdefault%2Fshadow.png\",\"http%3A%2F%2F140.122.64.191%2FSchoolSrh%2Fjs%2Fext-3.4.0%2Fresources%2Fimages%2Fdefault%2Fshadow-lr.png\",\"http%3A%2F%2F140.122.64.191%2FSchoolSrh%2Fjs%2Fext-3.4.0%2Fresources%2Fimages%2Fdefault%2Fshadow-c.png\",\"http%3A%2F%2F140.122.64.191%2FSchoolSrh%2Fjs%2Fext-3.4.0%2Fresources%2Fimages%2Fdefault%2Fwindow%2Fleft-corners.png\",\"http%3A%2F%2F140.122.64.191%2FSchoolSrh%2Fjs%2Fext-3.4.0%2Fresources%2Fimages%2Fdefault%2Fwindow%2Fright-corners.png\",\"http%3A%2F%2F140.122.64.191%2FSchoolSrh%2Fjs%2Fext-3.4.0%2Fresources%2Fimages%2Fdefault%2Fwindow%2Ftop-bottom.png\",\"http%3A%2F%2F140.122.64.191%2FSchoolSrh%2Fjs%2Fext-3.4.0%2Fresources%2Fimages%2Fdefault%2Fwindow%2Fleft-right.png\",\"http%3A%2F%2F140.122.64.191%2FSchoolSrh%2Fjs%2Fext-3.4.0%2Fresources%2Fimages%2Fdefault%2Fform%2Ftext-bg.gif\",\"http%3A%2F%2F140.122.64.191%2FSchoolSrh%2Fjs%2Fext-3.4.0%2Fresources%2Fimages%2Fdefault%2Fform%2Ftrigger.gif\",\"http%3A%2F%2F140.122.64.191%2FSchoolSrh%2Fjs%2Fext-3.4.0%2Fresources%2Fimages%2Fdefault%2Fsizer%2Fs-handle.gif\",\"http%3A%2F%2F140.122.64.191%2FSchoolSrh%2Fjs%2Fext-3.4.0%2Fresources%2Fimages%2Fdefault%2Fsizer%2Fe-handle.gif\",\"http%3A%2F%2F140.122.64.191%2FSchoolSrh%2Fjs%2Fext-3.4.0%2Fresources%2Fimages%2Fdefault%2Fsizer%2Fne-handle.gif\",\"http%3A%2F%2F140.122.64.191%2FSchoolSrh%2Fjs%2Fext-3.4.0%2Fresources%2Fimages%2Fdefault%2Fsizer%2Fnw-handle.gif\",\"http%3A%2F%2F140.122.64.191%2FSchoolSrh%2Fjs%2Fext-3.4.0%2Fresources%2Fimages%2Fdefault%2Fsizer%2Fse-handle.gif\",\"http%3A%2F%2F140.122.64.191%2FSchoolSrh%2Fjs%2Fext-3.4.0%2Fresources%2Fimages%2Fdefault%2Fsizer%2Fsw-handle.gif\",\"http%3A%2F%2F140.122.64.191%2FSchoolSrh%2Fjs%2Fext-3.4.0%2Fresources%2Fimages%2Fdefault%2Fs.gif\",\"http%3A%2F%2F140.122.64.191%2Ffavicon.ico\"","rule":"yexpires","score":0},{"description":"Compress components:There are 4 plain text components that should be sent compressed  \"http%3A%2F%2F140.122.64.191%2FSchoolSrh%2FDemo%2FschoolSearch.html\",\"http%3A%2F%2F140.122.64.191%2FSchoolSrh%2Fjs%2Fext-3.4.0%2Fresources%2Fcss%2Fext-all.css\",\"http%3A%2F%2F140.122.64.191%2FSchoolSrh%2Fjs%2Fext-3.4.0%2Fadapter%2Fext%2Fext-base.js\",\"http%3A%2F%2F140.122.64.191%2FSchoolSrh%2Fjs%2Fext-3.4.0%2Fext-all.js\"","rule":"ycompress","score":56},{"description":"Put CSS at top  ","rule":"ycsstop","score":100},{"description":"Put Javascript at the bottom  ","rule":"yjsbottom","score":100},{"description":"Avoid CSS expression  ","rule":"yexpressions","score":100},{"description":"Make JS and CSS external:Only consider this if your property is a common user home page.  \"There%20is%20a%20total%20of%201%20inline%20css\",\"There%20is%20a%20total%20of%202%20inline%20scripts\"","rule":"yexternal","score":-1},{"description":"Reduce DNS lookups  \"maps.googleapis.com%3A%201%20component%2C%204.9K%20(4.9K%20GZip)\",\"maps.gstatic.com%3A%201%20component%2C%2051.0K%20(51.0K%20GZip)\"","rule":"ydns","score":100},{"description":"Minify JS and CSS:There are 3 components that can be minified  \"inline%20%26lt%3Bstyle%26gt%3B%20tag%20%231\",\"inline%20%26lt%3Bscript%26gt%3B%20tag%20%231\",\"inline%20%26lt%3Bscript%26gt%3B%20tag%20%232\"","rule":"yminify","score":70},{"description":"Avoid redirects  ","rule":"yredirects","score":100},{"description":"Remove duplicate JS and CSS  ","rule":"ydupes","score":100},{"description":"Configure ETags  ","rule":"yetags","score":100},{"description":"Make Ajax cacheable  ","rule":"yxhr","score":100},{"description":"Use GET for AJAX requests  ","rule":"yxhrmethod","score":100},{"description":"Reduce the Number of DOM elements  ","rule":"ymindom","score":100},{"description":"No 404s  ","rule":"yno404","score":100},{"description":"Reduce Cookie Size  ","rule":"ymincookie","score":100},{"description":"Use Cookie-free Domains  ","rule":"ycookiefree","score":100},{"description":"Avoid filters  ","rule":"ynofilter","score":100},{"description":"Don't Scale Images in HTML  ","rule":"yimgnoscale","score":100},{"description":"Make favicon Small and Cacheable:Favicon is more than 2000 bytes\\nFavicon is not cacheable  ","rule":"yfavicon","score":90}],"contentType":"audio/mpeg","id":8,"lvl":3,"title":"","url":"http://140.112.31.76/FF/mp3/test.mp3"},{"analysis":[],"contentType":"text/css","id":9,"lvl":3,"title":"","url":"http://140.122.64.191/SchoolSrh/js/ext-3.4.0/resources/css/ext-all.css"}]}
+
+    	
+    	var resultjson = 
+    	{"result":[{"id":"3","score":"0.5690805","url":"http:\/\/140.112.31.76\/FF\/crawlme\/test.html"},{"id":"1","score":"0.39835632","url":"http:\/\/140.112.31.76\/FF\/crawlme\/"}]}
+
+    	//myReader.readRecords(json);
+    	//console.log(myReader.getTotal);
+    	resultstore.loadData(resultjson);
+    	console.log(resultstore.getById(3));
+    });  
+</script>  
+<title>JSONSTORE TEST</title>
+</head>
+<body>
+<a href="../">Back</a>
+<div id="form"></div>
+</body>
+</html>

@@ -1,165 +1,26 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE html>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<link rel="stylesheet" type="text/css" href="js/ext-3.4.0/resources/css/ext-all.css" />
-<style type="text/css">
-.hello {
-	background-image: url(images/hello.png) !important;
-}
+<link rel="stylesheet" type="text/css"
+	href="js/ext-3.4.0/resources/css/ext-all.css" />
+<link rel="stylesheet" href="css/style.css">
 
-.demo {
-	background-image: url(images/test.png) !important;
-}
-
-.cmbo {
-	background-image: url(images/combobox.png) !important;
-}
-</style>
-<link rel="stylesheet" href="css/bootstrap.min.css">
 <script type="text/javascript" src="js/ext-3.4.0/adapter/ext/ext-base.js"></script>
-<script type="text/javascript" src="js/ext-3.4.0/ext-all.js"></script>
-<script type="text/javascript" src="js/jquery-1.10.1.min.js"></script>
-<script type="text/javascript" src="js/d3.min.js"></script>
-<script src="js/bootstrap.min.js"></script>
+<script type="text/javascript" src="js/ext-3.4.0/ext-all-debug.js"></script>
+<script src="js/d3.min.js" charset="utf-8"></script>
+<script src="js/jquery-1.10.1.min.js"></script>
+<!-- <script type="text/javascript" src="mashup.js" charset="utf-8"></script> -->
 
-<script type="text/javascript">
-	Ext.onReady(function() {
-		function helloWorld() {
-			Ext.Msg.alert("Info", "Hello World!");
-		}
-		function onMenuItem(item) {
-			Ext.Msg.alert('Info', item.text);
-		}
+<!-- maybe should move js scripts somewhere else -->
+<script src="js/Tooltip.js"></script>
+<script src="js/coffee-script.js"></script>
+<script type="text/coffeescript" src="sitetreeui/prototype.coffee"></script>
 
-		//Ext.Msg.alert("Info", "Welcome to SiteTreeUI!");
-		// http://docs-origin.sencha.com/extjs/3.4.0/#!/api/Ext.Toolbar
-		var toolbar = new Ext.Toolbar({
-			renderTo : 'toolbar'
-		});
-		toolbar.addButton([ {
-			text : 'Hello World',
-			handler : helloWorld,
-			icon : 'images/hello.png'
-		} ]);
-		var infoMenu = new Ext.menu.Menu({
-			items : [ {
-				text : 'ComboBox',
-				handler : onMenuItem,
-				icon : 'images/combobox.png',
-				menu : new Ext.menu.Menu({
-					items : [ {
-						text : '遠程數據源的組合框',
-						handler : function() {
-							window.location = 'extjsDemo/e3-9.html';
-						}
-					} ]
-				})
-			}, {
-				text : 'D3',
-				handler : onMenuItem,
-				icon : 'images/examples.png',
-				menu : new Ext.menu.Menu({
-					items : [ {
-						text : 'Force-Directed Graph',
-						handler : function() {
-							window.location = 'd3/FDGraph.jsp';
-						}
-					}, {
-						text : 'Load on page',
-						handler : function() {
-							window.location = 'd3/mashup.html';
-						}
-					}, {
-						text : 'Coffeescript D3 original',
-						handler : function(){
-							window.location = 'coffeeDemo/index.html';
-						}
-					}, {
-						text : 'Coffeescript D3 experiment',
-						handler : function(){
-							window.location = 'coffeeDemo/index2.html';
-						}
-					}, {
-						text : 'beta layout',
-						handler : function(){
-							window.location = 'd3/mashup_combo.html';
-						}
-					}, {
-						text : 'final prototype',
-						handler : function(){
-							window.location = 'd3/prototype.html';
-						}
-					} ]
-				})
-			} ]
-		});
-
-		toolbar.add({
-			text : 'Demo Pages',
-			menu : infoMenu,
-			iconCls : 'demo'
-		});
-		toolbar.doLayout();
-	});
-</script>
-<title>Hello World</title>
-<script>
-	$(document).ready(function(){
-		$("#loading").offset({left : $("#welcome-circle").offset().left - 75, top : $("#welcome-circle").offset().top+100});
-		
-		$("#url-submit").click(function(){
-			$("#loading").show();
-			if ($("#url-input").val() != '') {
-				$.ajax({
-					  type: "POST",
-					  url: "url",
-					  data: {url : $("#url-input").val()},
-					  success: function(data){
-						  $("#loading").hide();
-						  
-					  },
-					  dataType: "json"
-					});
-				}
-			
-			
-		});
-		
-		
-	})
-
-
-
-</script>
+<title>SiTreeUI</title>
 </head>
-<body style="background-image:url(images/stardust.png)">
-	<div id='toolbar'></div>
-	
-	<div id="graph" style=" width:inherit;text-align:center;">
-		<img id="loading" style="display:none;-webkit-transform:rotateX(60deg); transform:rotateX(60deg); /* Standard syntax */position:absolute;" src="images/loading-spinning-bubbles.svg" width="500" height="500"/>
-		<img id="welcome-circle" src="images/welcomecircle.png" 
-		style="top:150px;position:relative;width:350;height:350px;" />
-	</div>
-	
-	<div style="font-size:20px;position:relative;margin-left:auto;margin-right:auto;bottom:50px;">
-		<div style="text-align:center;position:relative;margin-left:auto;margin-right:auto;width:300px;">請在此輸入欲分析網站的首頁網址</div>
-		<br />
-		
-		<div class="input-group" style="position:relative;margin-left:auto;margin-right:auto;width:250px;">
-		
-      	<input placeholder="首頁網址" id="url-input" type="text" class="form-control">
-      	<span class="input-group-btn">
-	        <button id="url-submit" class="btn btn-default" type="button">送出</button>
-      	</span>
-    	</div><!-- /input-group -->
-    	
-    </div>
-    
-
-
-	
-	<br />
-
-</body>
+	<body>
+		<div id="customd3" style="width:100%; height:100%"></div>
+		<div id="tooltipHolder"></div>
+	</body>
 </html>

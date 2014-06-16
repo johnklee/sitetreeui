@@ -3,10 +3,10 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF8">
-<script type="text/javascript" src="../js/ext-3.4.0/adapter/ext/ext-base.js"></script>
-<script type="text/javascript" src="../js/ext-3.4.0/ext-all.js"></script>
+<script type="text/javascript" src="../../js/ext-3.4.0/adapter/ext/ext-base.js"></script>
+<script type="text/javascript" src="../../js/ext-3.4.0/ext-all.js"></script>
 <script src="http://d3js.org/d3.v3.min.js"></script>
-<link rel="stylesheet" type="text/css" href="../js/ext-3.4.0/resources/css/ext-all.css" />
+<link rel="stylesheet" type="text/css" href="../../js/ext-3.4.0/resources/css/ext-all.css" />
 <style>
 
 .node {
@@ -22,7 +22,7 @@
 </style>
 <script type="text/javascript">  
     Ext.onReady(function(){  
-        Ext.BLANK_IMAGE_URL = '../js/ext-3.4.0/resources/images/default/s.gif';  
+        Ext.BLANK_IMAGE_URL = '../../js/ext-3.4.0/resources/images/default/s.gif';  
         /* new Ext.Panel({  
             title:'面板標題(header)',  
             tbar : ['頂端工具欄(top toolbars)'],  
